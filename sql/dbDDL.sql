@@ -1,12 +1,12 @@
-drop table admin;
-drop table student;
-drop table ta;
-drop table registration;
 drop table room;
 drop table building;
-drop table campus;
+drop table registration;
+drop table ta;
 drop table course;
 drop table instructor;
+drop table student;
+drop table campus;
+drop table admin;
 drop table college;
 drop table advisor;
 drop table department;
@@ -17,7 +17,6 @@ insert into department(department_id, department_name, office_address, dean_name
                                                                                                     1, 'Computer Science', '4 N 2nd Street', 'Ed', 12345678, 3.88);
 insert into department(department_id, department_name, office_address, dean_name, phone, average_gpa) values (
                                                                                                     2, 'Informatics', '4 N 2nd Street', 'James', 11111111, 3.44);
-
 create table campus (campusid int primary key, campus_name varchar(45), location varchar(45));
 insert into campus(campusid, campus_name, location) values (1, 'Silicon Valley', 'San Jose');
 insert into campus(campusid, campus_name, location) values (2, 'Seattle', 'Seattle');
