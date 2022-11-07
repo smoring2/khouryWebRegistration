@@ -12,7 +12,7 @@ select d.department_name
 from department d
 inner join student s
 on s.department_id = d.department_id
-where s.name = 'Husky';
+where s.name = 'Lily';
 
 /* SQL 3: Select max GPA from each department. */
 select department_name, grade
@@ -29,7 +29,7 @@ from course c
 inner join instructor i
 on c.instructor_id = i.employee_id
 inner join campus cam
-on cam.campus_id = i.campus_id
+on cam.campusid = i.campusid
 where c.semester = 2;
 
 
