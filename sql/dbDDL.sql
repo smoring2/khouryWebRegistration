@@ -95,7 +95,7 @@ select * from dpt1stu;
 
 
 -- view 2 dpt1ad
--- see all advisor 1's inst info
+-- see all department 1's advisors' info
 drop view dpt1ad;
 create view dpt1ad
     as select *
@@ -169,23 +169,56 @@ end; $$
 delimiter ; $$
 -- insert a new student with invalid bdate to test the trigger
 insert into student (nuid, name, email, bdate, campusid, collegeid, department_id, phone, advisor, photo, grade, semesterhour) values
-    (6, 'Edward', 'jone@northeastern.edu', '2200-02-21', 2, 12, 2, 100000001, 101, '/imgs/husky.png', 4.5, 16);
+    (6, 'Bell', 'jone@northeastern.edu', '2200-02-21', 2, 12, 2, 100000001, 101, '/imgs/husky.png', 4.5, 16);
 select * from student;
 
 -- trigger 2 cal_average_gpa_department_trigger
 -- calculate the average_gpa for campus and department when a change in student table
 delimiter $$ ;
-drop trigger cal_average_gpa_department_trigger $$
-create trigger cal_average_gpa_department_trigger
+drop trigger cal_average_gpa_department_trigger_insert $$
+create trigger cal_average_gpa_department_trigger_insert
     after insert on student
     for each row
-    begin
-        call cal_average_gpa_department(new.department_id);
-    end; $$
+begin
+    call cal_average_gpa_department(new.department_id);
+end; $$
 delimiter ; $$
 -- test
 select * from department where department_id = 1;
 insert into student (nuid, name, email, bdate, campusid, collegeid, department_id, phone, advisor, photo, grade, semesterhour) values
-    (7, 'Edward', 'jone@northeastern.edu', '2200-02-21', 2, 12, 1, 100000001, 101, '/imgs/husky.png', 4, 16);
+    (7, 'Apple', 'jone@northeastern.edu', '2200-02-21', 2, 12, 1, 100000001, 101, '/imgs/husky.png', 4, 16);
+select * from department where department_id = 1;
+
+
+-- trigger 3 cal_average_gpa_department_trigger_update
+-- calculate the average_gpa for campus and department when a change in student table
+delimiter $$ ;
+drop trigger cal_average_gpa_department_trigger_update $$
+create trigger cal_average_gpa_department_trigger_update
+    after update on student
+    for each row
+begin
+    call cal_average_gpa_department(new.department_id);
+end; $$
+delimiter ; $$
+-- test
+select * from department where department_id = 1;
+update student set grade = 3 where nuid = 1;
+select * from department where department_id = 1;
+
+-- trigger 3 cal_average_gpa_department_trigger_delete
+-- calculate the average_gpa for campus and department when a change in student table
+delimiter $$ ;
+drop trigger cal_average_gpa_department_trigger_delete $$
+create trigger cal_average_gpa_department_trigger_delete
+    after delete on student
+    for each row
+    begin
+        call cal_average_gpa_department(old.department_id);
+    end; $$
+delimiter ; $$
+-- test
+select * from department where department_id = 1;
+delete from student where nuid = 7;
 select * from department where department_id = 1;
 
