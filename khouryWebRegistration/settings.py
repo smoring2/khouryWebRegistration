@@ -87,7 +87,7 @@ if os.getenv('GAE_APPLICATION', None):
             'NAME': 'project',
             'HOST': '/cloudsql/db-group12-365720:us-central1:cs5200team12',
             'USER': 'cs5200team12',
-            'PASSWORD': 'a12345678'
+            'PASSWORD': 'use password here please'
         } 
     }
 else:
@@ -96,7 +96,7 @@ else:
             'ENGINE': 'django.db.backends.mysql', 
             'NAME': 'project',
             'USER': 'cs5200team12',
-            'PASSWORD': 'a12345678',
+            'PASSWORD': 'use password here please',
             'HOST': '34.70.34.212',
             'PORT': '3306'
         } 
