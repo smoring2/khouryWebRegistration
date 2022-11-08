@@ -55,40 +55,6 @@ Create table student(nuid int primary key, name varchar(50), email varchar(100),
                      foreign key (campusid) references campus(campusid), foreign key (collegeid) references college(collegeid), foreign key
                          (department_id) references department(department_id));
 
-# insert into department(department_id, department_name, office_address, dean_name, phone, average_gpa) values (
-#                                                                                                                  1, 'Computer Science', '4 N 2nd Street', 'Ed', 12345678, 3.88);
-# insert into department(department_id, department_name, office_address, dean_name, phone, average_gpa) values (
-#                                                                                                                  2, 'Informatics', '4 N 2nd Street', 'James', 11111111, 3.44);
-# insert into campus(campusid, campus_name, location) values (1, 'Silicon Valley', 'San Jose');
-# insert into campus(campusid, campus_name, location) values (2, 'Seattle', 'Seattle');
-# insert into instructor(employee_id, email, phone, name, department_id, campusid, office_hour) values (
-#                                                                                                          1, 'lee@northeastern.edu', 11112222, 'Lee', 1, 1, '08:00:00');
-# insert into course (course_id, instructor_id, meeting_time, max_num_of_students, semester, semester_hrs, registered_num_of_stud)
-# values (5200, 1, '18:00:00', 45, 2, 4, 37);
-# insert into course (course_id, instructor_id, meeting_time, max_num_of_students, semester, semester_hrs, registered_num_of_stud)
-# values (5520, 1, '10:00:00', 45, 2, 4, 40);
-#
-# insert into college(collegeid, name) values (12, 'Liberal art and sciences');
-# insert into college(collegeid, name) values (13, 'Engineering');
-# insert into advisor (employee_id, name, email, phone, department_id)
-# values (1, 'Chung Xiong', 'c.xiong@northeaster.edu', 1111111111, 1);
-# insert into advisor (employee_id, name, email, phone, department_id)
-# values (2, 'Anna Olson', 'a.olson@northeastern.edu', 222222222, 1);
-# insert into admin (employee_id, name, email, phone, department_id)
-# values (2, 'Anna Olson', 'a.olson@northeastern.edu', 222222222, 1);
-# insert into student (nuid, name, email, bdate, campusid, collegeid, department_id, phone, advisor, photo, grade, semesterhour) values
-#     (1, 'Husky', 'husky@northeastern.edu', '2022-10-17', 1, 12, 1, 111111111, 100, '/imgs/husky.png', 4.00, 4);
-# insert into student (nuid, name, email, bdate, campusid, collegeid, department_id, phone, advisor, photo, grade, semesterhour) values
-#     (2, 'James', 'james@northeastern.edu', '2000-11-06', 1, 13, 1, 100000000, 100, '/imgs/husky.png', 3.75, 20);
-# insert into student (nuid, name, email, bdate, campusid, collegeid, department_id, phone, advisor, photo, grade, semesterhour) values
-#     (3, 'Jone', 'jone@northeastern.edu', '2001-08-01', 2, 13, 2, 100000000, 101, '/imgs/husky.png', 3.21, 18);
-# insert into student (nuid, name, email, bdate, campusid, collegeid, department_id, phone, advisor, photo, grade, semesterhour) values
-#     (4, 'Johnson', 'jone@northeastern.edu', '1999-08-13', 2, 12, 2, 100000000, 101, '/imgs/husky.png', 3.46, 8);
-# insert into student (nuid, name, email, bdate, campusid, collegeid, department_id, phone, advisor, photo, grade, semesterhour) values
-#     (5, 'Edward', 'jone@northeastern.edu', '1998-02-21', 2, 12, 2, 100000000, 101, '/imgs/husky.png', 3.66, 16);
-
-
-
 -- view 1 dpt1stu
 -- see all department 1's students info
 # drop view dpt1stu;
