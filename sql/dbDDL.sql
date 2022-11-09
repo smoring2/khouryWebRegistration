@@ -11,6 +11,9 @@
 # drop table advisor;
 # drop table department;
 
+CREATE DATABASE ph4;
+USE ph4;
+
 create table department(department_id int primary key, department_name varchar(20), office_address varchar(100),
                         dean_name varchar(20), phone int, average_gpa double);
 
@@ -76,15 +79,15 @@ select * from dpt1ad;
 
 -- procedure 1 update_capacity_for_course
 -- Allow more student n to join a course
-delimiter $$ ;
+delimiter //
 # DROP PROCEDURE update_capacity_for_course $$
 create procedure update_capacity_for_course (IN param_course_id int, IN param_new_capacity int)
 begin
     update course
     set max_num_of_students = param_new_capacity
     where course_id = param_course_id;
-end; $$
-delimiter ; $$
+end //
+delimiter ;
 -- test
 # select * from course where course_id = 5200;
 # call update_capacity_for_course(5200, 50);
@@ -93,34 +96,34 @@ delimiter ; $$
 
 -- procedure 2 cal_average_gpa_department
 -- Calculate the average_gpa for given department id
-delimiter $$ ;
+delimiter  //
 # DROP PROCEDURE cal_average_gpa_department $$
 create procedure cal_average_gpa_department (IN param_department_id int)
 begin
     update department
     set average_gpa = (select avg(grade) from student group by student.department_id having student.department_id = param_department_id)
     where department_id = param_department_id;
-end; $$
-delimiter ; $$
+end //
+delimiter ;
 
 -- procedure 3 update_stu_semesterhour
 -- Update student's semesterhour
-delimiter $$ ;
+delimiter  //
 # DROP PROCEDURE update_stu_semesterhour $$
 create procedure update_stu_semesterhour (IN param_student_id int, IN param_new_semesterhour int)
 begin
     update student
     set semesterhour = param_new_semesterhour
     where nuid = param_student_id;
-end; $$
-delimiter ; $$
+end //
+delimiter ;
 # select * from student where nuid = 1;
 # call update_stu_semesterhour(1, 12);
 # select * from student where nuid = 1;
 
 -- trigger 1 student_violation
 -- check if the bdate is larger than current time when a new tuple is inserted into student table
-delimiter $$ ;
+delimiter  //
 # drop trigger student_violation $$
 create trigger student_violation
     before insert
@@ -136,8 +139,8 @@ begin
     if new.grade < 0 then
         set new.grade = 0;
     end if;
-end; $$
-delimiter ; $$
+end //
+delimiter ;
 -- insert a new student with invalid bdate to test the trigger
 # insert into student (nuid, name, email, bdate, campusid, collegeid, department_id, phone, advisor, photo, grade, semesterhour) values
 #     (6, 'Bell', 'jone@northeastern.edu', '2200-02-21', 2, 12, 2, 100000001, 101, '/imgs/husky.png', 4.5, 16);
@@ -145,15 +148,15 @@ delimiter ; $$
 
 -- trigger 2 cal_average_gpa_department_trigger
 -- calculate the average_gpa for campus and department when a change in student table
-delimiter $$ ;
+delimiter  //
 # drop trigger cal_average_gpa_department_trigger_insert $$
 create trigger cal_average_gpa_department_trigger_insert
     after insert on student
     for each row
 begin
     call cal_average_gpa_department(new.department_id);
-end; $$
-delimiter ; $$
+end //
+delimiter ;
 -- test
 # select * from department where department_id = 1;
 # insert into student (nuid, name, email, bdate, campusid, collegeid, department_id, phone, advisor, photo, grade, semesterhour) values
@@ -163,31 +166,31 @@ delimiter ; $$
 
 -- trigger 3 cal_average_gpa_department_trigger_update
 -- calculate the average_gpa for campus and department when a change in student table
-delimiter $$ ;
+delimiter  //
 # drop trigger cal_average_gpa_department_trigger_update $$
 create trigger cal_average_gpa_department_trigger_update
     after update on student
     for each row
 begin
     call cal_average_gpa_department(new.department_id);
-end; $$
-delimiter ; $$
+end //
+delimiter ;
 -- test
 # select * from department where department_id = 1;
 # update student set grade = 3 where nuid = 1;
 # select * from department where department_id = 1;
 
--- trigger 3 cal_average_gpa_department_trigger_delete
+-- trigger 4 cal_average_gpa_department_trigger_delete
 -- calculate the average_gpa for campus and department when a change in student table
-delimiter $$ ;
+delimiter  //
 # drop trigger cal_average_gpa_department_trigger_delete $$
 create trigger cal_average_gpa_department_trigger_delete
     after delete on student
     for each row
     begin
         call cal_average_gpa_department(old.department_id);
-    end; $$
-delimiter ; $$
+    end //
+delimiter ;
 # -- test
 # select * from department where department_id = 1;
 # delete from student where nuid = 7;
