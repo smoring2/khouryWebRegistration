@@ -11,8 +11,6 @@
 # drop table advisor;
 # drop table department;
 
-CREATE DATABASE ph4;
-USE ph4;
 
 create table department(department_id int primary key, department_name varchar(20), office_address varchar(100),
                         dean_name varchar(20), phone int, average_gpa double);
@@ -34,10 +32,10 @@ create table college(collegeid int primary key, name varchar(45));
 
 
 create table advisor(employee_id int primary key, name varchar(45), email varchar(100), phone int, department_id int,
-                     foreign key (department_id) references department(department_id));
+                     foreign key (department_id) references department(department_id), password varchar(20));
 
 create table admin(employee_id int primary key, name varchar(45), email varchar(100), phone int, department_id int, foreign key (department_id)
-    references department(department_id));
+    references department(department_id), password varchar(20));
 
 create table ta(nuid int primary key, name varchar(45), email varchar(100), campusid int, collegeid int, department_id int,
                 phone int, advisor int(10), photo varchar(45), grade varchar(45), semester_hour varchar(45), course_id int,
@@ -56,7 +54,7 @@ Create table student(nuid int primary key, name varchar(50), email varchar(100),
                      department_id int, phone int(11), advisor int(10), photo varchar(45), grade double, semesterhour int,
                      foreign key (advisor) references advisor(employee_id),
                      foreign key (campusid) references campus(campusid), foreign key (collegeid) references college(collegeid), foreign key
-                         (department_id) references department(department_id));
+                         (department_id) references department(department_id), password varchar(20));
 
 -- view 1 dpt1stu
 -- see all department 1's students info

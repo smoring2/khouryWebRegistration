@@ -46,21 +46,21 @@ insert into college values (12, 'Liberal art and sciences'),
                            (17, 'School of Law'),
                            (18, 'College of Professional Studies');
 					
-insert into advisor values (8, 'Anna', 'anna@northeastern.edu', 77770000, 1),
-			   (9, 'Cary', 'cary@northeastern.edu', 88880000, 2),
-                           (10, 'Diane', 'diane@northeastern.edu', 99990000, 3),
-                           (11, 'Will', 'will@northeastern.edu', 11113333, 4),
-                           (12, 'Zach', 'zach@northeastern.edu', 22224444, 5),
-                           (13, 'Eli', 'eli@northeastern.edu', 33335555, 6),
-                           (14, 'Grace', 'grace@northeastern.edu', 44446666, 7);
+insert into advisor values (8, 'Anna', 'anna@northeastern.edu', 77770000, 1, '123456778'),
+			   (9, 'Cary', 'cary@northeastern.edu', 88880000, 2, '123456778'),
+                           (10, 'Diane', 'diane@northeastern.edu', 99990000, 3, '123456778'),
+                           (11, 'Will', 'will@northeastern.edu', 11113333, 4, '123456778'),
+                           (12, 'Zach', 'zach@northeastern.edu', 22224444, 5, '123456778'),
+                           (13, 'Eli', 'eli@northeastern.edu', 33335555, 6, '123456778'),
+                           (14, 'Grace', 'grace@northeastern.edu', 44446666, 7, '123456778');
 
-insert into admin values (15, 'kalinda', 'kalinda@northeastern.edu', 66668888, 1),
-			 (16, 'claire', 'claire@northeastern.edu', 12340000, 2),
-			 (17, 'phil','phil@northeastern.edu', 12341000, 3),
-                         (18, 'sarah','sarah@northeastern.edu', 12342000, 4),
-                         (19, 'jay','jay@northeastern.edu', 12343000, 5),
-                         (20, 'luke', 'luke@northeastern.edu', 12344000, 6),
-                         (21, 'cam', 'cam@northeastern.edu', 12345000, 6);
+insert into admin values (15, 'kalinda', 'kalinda@northeastern.edu', 66668888, 1, '123456778'),
+			 (16, 'claire', 'claire@northeastern.edu', 12340000, 2, '123456778'),
+			 (17, 'phil','phil@northeastern.edu', 12341000, 3, '123456778'),
+                         (18, 'sarah','sarah@northeastern.edu', 12342000, 4, '123456778'),
+                         (19, 'jay','jay@northeastern.edu', 12343000, 5, '123456778'),
+                         (20, 'luke', 'luke@northeastern.edu', 12344000, 6, '123456778'),
+                         (21, 'cam', 'cam@northeastern.edu', 12345000, 6, '123456778');
 
 insert into ta values (1, 'Lily', 'lily@northeastern.edu', 1, 12, 1, 43211000, 8, '/imgs/lily.png', 6, 4, 5200),
 		      (2, 'Gloria', 'gloria@northeastern.edu', 1, 12, 1, 43212000, 8, '/imgs/gloria.png', 6, 4, 5520),
@@ -86,13 +86,13 @@ insert into room values (1, 1, 1, 80),
                         (6, 6, 6, 100),
                         (7, 7, 7, 80);
 
-insert into student values (1, 'Lily', 'lily@northeastern.edu', '2000-10-17', 1, 12, 1, 43211000, 8, '/imgs/lily.png', 4.00, 4),
-			   (2, 'Gloria', 'gloria@northeastern.edu', '2000-11-06', 1, 12, 1, 43212000, 8, '/imgs/gloria.png', 3.75, 20),
-			   (3, 'Mitchelle', 'mitchelle@northeastern.edu', '2001-08-01', 2, 13, 2, 43214000, 9, '/imgs/mitchelle.png', 3.21, 18),
-			   (4, 'Johnson', 'johnson@northeastern.edu', '1999-08-13', 2, 13, 2, 100000000, 9, '/imgs/johnson.png', 3.46, 8),
-			   (5, 'Joe', 'joe@northeastern.edu', '1998-02-21', 2, 13, 2, 43215000, 9, '/imgs/joe.png', 3.66, 16),
-                           (6, 'Lana', 'lana@northeastern.edu', '1998-02-21', 3, 14, 3, 43215000, 10, '/imgs/lana.png', 4.00, 12),
-                           (7, 'Kurt', 'kurt@northeastern.edu', '1998-02-21', 4, 15, 4, 43215000, 11, '/imgs/kurt.png', 3.50, 10),
-                           (8, 'Dede', 'dede@northeastern.edu', '1998-02-21', 5, 16, 5, 43215000, 12, '/imgs/dede.png', 2.80, 16),
-                           (9, 'Pepper', 'pepper@northeastern.edu', '1998-02-21', 6, 17, 6, 43215000, 13, '/imgs/pepper.png', 2.30, 20),
-                           (10, 'Manny', 'manny@northeastern.edu', '1998-02-21', 7, 18, 7, 43215000, 14, '/imgs/manny.png', 3.60, 10);
+insert into student values (1, 'Lily', 'lily@northeastern.edu', '2000-10-17', 1, 12, 1, 43211000, 8, '/imgs/lily.png', 4.00, 4, '123456778'),
+			   (2, 'Gloria', 'gloria@northeastern.edu', '2000-11-06', 1, 12, 1, 43212000, 8, '/imgs/gloria.png', 3.75, 20, '123456778'),
+			   (3, 'Mitchelle', 'mitchelle@northeastern.edu', '2001-08-01', 2, 13, 2, 43214000, 9, '/imgs/mitchelle.png', 3.21, 18, '123456778'),
+			   (4, 'Johnson', 'johnson@northeastern.edu', '1999-08-13', 2, 13, 2, 100000000, 9, '/imgs/johnson.png', 3.46, 8, '123456778'),
+			   (5, 'Joe', 'joe@northeastern.edu', '1998-02-21', 2, 13, 2, 43215000, 9, '/imgs/joe.png', 3.66, 16, '123456778'),
+                           (6, 'Lana', 'lana@northeastern.edu', '1998-02-21', 3, 14, 3, 43215000, 10, '/imgs/lana.png', 4.00, 12, '123456778'),
+                           (7, 'Kurt', 'kurt@northeastern.edu', '1998-02-21', 4, 15, 4, 43215000, 11, '/imgs/kurt.png', 3.50, 10, '123456778'),
+                           (8, 'Dede', 'dede@northeastern.edu', '1998-02-21', 5, 16, 5, 43215000, 12, '/imgs/dede.png', 2.80, 16, '123456778'),
+                           (9, 'Pepper', 'pepper@northeastern.edu', '1998-02-21', 6, 17, 6, 43215000, 13, '/imgs/pepper.png', 2.30, 20, '123456778'),
+                           (10, 'Manny', 'manny@northeastern.edu', '1998-02-21', 7, 18, 7, 43215000, 14, '/imgs/manny.png', 3.60, 10, '123456778');
