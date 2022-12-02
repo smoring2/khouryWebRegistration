@@ -123,17 +123,18 @@ class DjangoSession(models.Model):
 
 
 class Student(models.Model):
-    nuid = models.IntegerField(primary_key=True)
+    nuid = models.IntegerField(primary_key=True, max_length=8)
     name = models.CharField(max_length=8, blank=True, null=True)
     email = models.CharField(max_length=45, blank=True, null=True)
     bdate = models.DateField(blank=True, null=True)
-    campusid = models.IntegerField(blank=True, null=True)
-    collegeid = models.IntegerField(blank=True, null=True)
-    phone = models.IntegerField(blank=True, null=True)
-    advisor = models.IntegerField(blank=True, null=True)
+    campusid = models.IntegerField(blank=True, null=True, max_length=8)
+    collegeid = models.IntegerField(blank=True, null=True, max_length=8)
+    phone = models.IntegerField(blank=True, null=True, max_length=10)
+    advisor = models.IntegerField(blank=True, null=True, max_length=10)
     photo = models.CharField(max_length=45, blank=True, null=True)
-    grade = models.IntegerField(blank=True, null=True)
-    semesterhour = models.IntegerField(blank=True, null=True)
+    grade = models.DecimalField(blank=True, null=True, max_digits = 4, decimal_places=2)
+    semesterhour = models.IntegerField(blank=True, null=True, max_length=3)
+    password = models.CharField(max_length=20)
 
     class Meta:
         # managed = False

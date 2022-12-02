@@ -1,0 +1,82 @@
+<!--Top black bar-->
+<html>
+    <title>Homepage</title>
+    <head>
+        <style>
+            #topBlackBar {
+                border-top: 50px solid #000;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="topBlackBar"/>
+    </body>
+</html>
+
+<head>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Material+Icons">
+    <link rel="stylesheet" href="https://unpkg.com/bootstrap-material-design@4.1.1/dist/css/bootstrap-material-design.min.css" integrity="sha384-wXznGJNEXNG1NFsbm0ugrLFMQPWswR3lds2VeinahP8N0zJw9VWSopbjv2x7WCvX" crossorigin="anonymous">
+    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/latest/css/font-awesome.min.css" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Roboto+Slab:400,700|Material+Icons">
+    <link rel="stylesgeet" href="https://rawgit.com/creativetimofficial/material-kit/master/assets/css/material-kit.css">
+</head>
+
+<body class="profile-page">
+
+    <div class="page-header header-filter" data-parallax="true" style="background-image:url('http://wallpapere.org/wp-content/uploads/2012/02/black-and-white-city-night.png');"></div>
+    <div class="main main-raised">
+		<div class="profile-content">
+            <div class="container">
+                <div class="row">
+	                <div class="col-md-6 ml-auto mr-auto">
+        	           <div class="profile" align="center">
+	                        <div class="avatar">
+	                            <img src="http://nuhuskies.com/common/controls/image_handler.aspx?thumb_prefix=medium&amp;image_path=/images/2010/7/29/paws247.jpg" alt="Circle Image" class="img-raised rounded-circle img-fluid">
+	                        </div>
+	                        <div class="name">
+	                            <h3 class="title"> Name: {{ object.name }}</h3>
+								<h6> Nuid: {{ object.nuid }} </h6>
+								<a href="#pablo" class="btn btn-just-icon btn-link btn-dribbble"><i class="fa fa-dribbble"></i></a>
+                                <a href="#pablo" class="btn btn-just-icon btn-link btn-twitter"><i class="fa fa-twitter"></i></a>
+                                <a href="#pablo" class="btn btn-just-icon btn-link btn-pinterest"><i class="fa fa-pinterest"></i></a>
+	                        </div>
+	                    </div>
+    	            </div>
+                </div>
+                <div class="description text-center">
+                    <p> About me: Hello everyone, My name is {{ object.name }}, I'm a second-year graduate student majoring in Computer Science at SV campus. </p>
+                </div>
+				<div class="row">
+					<div class="col-md-6 ml-auto mr-auto">
+                        <div class="profile-tabs">
+                          <ul class="nav nav-pills nav-pills-icons justify-content-center" role="tablist">
+                            <li class="nav-item">
+                                <a class="nav-link active" href="#studio" role="tab" data-toggle="tab">
+                                  <i class="material-icons">camera</i>
+                                  Course Registration
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href={% url "student_list" %} role="tab" data-toggle="tab">
+                                  <i class="material-icons">camera</i>
+                                    Profile
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="#favorite" role="tab" data-toggle="tab">
+                                  <i class="material-icons">camera</i>
+                                    Button 3
+                                </a>
+                            </li>
+                          </ul>
+                        </div>
+    	    	</div>
+            </div>
+          <div class="tab-content tab-space">
+          </div>
+
+            </div>
+        </div>
+	</div>
+
+</body>

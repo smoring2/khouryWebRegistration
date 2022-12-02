@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+ <title>Student List</title>
+</head>
+<table>
+ <thead>
+  <tr>
+   <th>Name</th>
+   <th>Actions</th>
+  </tr>
+ </thead>
+ <tbody>
+ {% for student in object_list %}
+  <tr>
+   <td>{{ student.name }}</td>
+   <td>
+    <a href="{% url "student_detail" student.nuid %}">Login</a>
+   </td>
+  </tr>
+ {% endfor %}
+  </tbody>
+</table>
+</html>
