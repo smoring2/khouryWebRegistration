@@ -22,4 +22,10 @@ urlpatterns = [
     path('', views.testmysql),
     path('student/', views.StudentList.as_view(), name = 'student_list'),
     path('student/<int:pk>', views.StudentDetails.as_view(), name = 'student_detail'),
+    path('advisor/profile/<int:employee_id>', views.getAdvisorProfile, name = 'advisor_profile'),
+    path('advisor/statics/<int:advisor_id>', views.getAdvisorStatics, name = 'advisor_statics'),
+    path('advisor/notifications/<int:advisor_id>', views.getAdvisorNotifications, name = 'advisor_notifications'),
+    path('advisor/search/<int:advisor_id>', views.getAdvisorSearch, name = 'advisor_search'),
+    path('advisor/search/details', views.getSearchDetails, name='search_details'),
+
 ]
