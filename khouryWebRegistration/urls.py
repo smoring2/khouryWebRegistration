@@ -17,6 +17,8 @@ from django.contrib import admin
 from django.urls import path, include
 from studentInfo import views
 from studentInfo import admin_view
+from studentInfo import advisor_views
+
 
 urlpatterns = [
     # path('admin/', admin.site.urls),
@@ -45,10 +47,10 @@ urlpatterns = [
          admin_view.delete_course, name='delete_course'),
 
     #advisor
-    path('advisor/profile/<int:employee_id>', views.getAdvisorProfile, name = 'advisor_profile'),
-    path('advisor/<int:advisor_id>', views.getAdvisorStatistics, name = 'advisor_statics'),
-    path('advisor/requests/<int:advisor_id>', views.getAdvisorRequests, name = 'advisor_requests'),
-    path('advisor/search/<int:advisor_id>', views.getAdvisorSearch, name = 'advisor_search'),
-    path('advisor/search/details', views.getSearchDetails, name='search_details'),
+    path('advisor/profile/<int:employee_id>', advisor_views.getAdvisorProfile, name = 'advisor_profile'),
+    path('advisor/<int:advisor_id>', advisor_views.getAdvisorStatistics, name = 'advisor_statics'),
+    path('advisor/requests/<int:advisor_id>', advisor_views.getAdvisorRequests, name = 'advisor_requests'),
+    path('advisor/search/<int:advisor_id>', advisor_views.getAdvisorSearch, name = 'advisor_search'),
+    path('advisor/search/details', advisor_views.getSearchDetails, name='search_details'),
     path('', include('studentInfo.urls')),
 ]
