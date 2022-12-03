@@ -23,9 +23,11 @@
 <div class="container">
     <div class="row mt-2">
         <div class="col-2">
+            <div class="fw-bolder">Advisor: {{data.advisor_name}}</div>
+            <div class="fw-bolder">ID: {{data.advisor_id}}</div>
             <div class="list-group">
-                <a href="{% url 'advisor_statics' advisor_id=data.advisor_id %}" class="list-group-item">Static</a>
-                <a href="{% url 'advisor_notifications' advisor_id=data.advisor_id %}" class="list-group-item active">Requests</a>
+                <a href="{% url 'advisor_statics' advisor_id=data.advisor_id %}" class="list-group-item">Statistics</a>
+                <a href="{% url 'advisor_requests' advisor_id=data.advisor_id %}" class="list-group-item active">Requests</a>
                 <a href="{% url 'advisor_profile' employee_id=data.advisor_id %}" class="list-group-item">Profile</a>
                 <a href="{% url 'advisor_search' advisor_id=data.advisor_id %}" class="list-group-item">Search</a>
             </div>
@@ -36,20 +38,34 @@
                 <h4 class="bg-info rounded p-1 bg-gradient">Name: {{pending.name}}</h4>
                 <p>NUID: {{pending.nuid}}</p>
                 <p>Grade: {{pending.grade}}</p>
-
                 <div class="bg-light rounded p-2">
                     <p class="fw-bolder">Course Plan</p>
                     {% for c in pending.courses %}
                     <p>{{c}}</p>
                     {% endfor %}
                 </div>
-                <button class="btn btn-primary">Approve</button>
+                <button class="btn btn-primary" onclick="approve({{pending.nuid}})">Approve</button>
                 <button class="btn btn-danger">Reject</button>
             </div>
             {% endfor %}
         </div>
     </div>
 </div>
-
+<script>
+    function approve(nuid) {
+        url = "/api/advisor/approve?nuid=" + nuid;
+        fetch(url).then(function(response) {
+            return response.json();
+        }).then(function(data) {
+            console.log(data);
+            location.reload()
+        }).catch(function() {
+            console.log("error");
+        });
+    }
+    function reject(nuid) {
+        //to do:
+    }
+</script>
 </body>
 </html>

@@ -27,12 +27,12 @@ class StudentDetails(DetailView):
 
 
 SQL_ADVISOR_INFO = '''SELECT * FROM advisor where employee_id = %(employee_id)s'''
-SQL_ADVISOR_STU = '''SELECT * FROM student where advisor = %(advisor_id)s'''
-SQL_ADVISOR_STU_AVG_GPA = '''SELECT AVG(grade) FROM student GROUP BY advisor having advisor = %(advisor_id)s'''
-SQL_ADVISOR_STU_UNDER_3 = '''select * from student where advisor = %(advisor_id)s and grade < 3'''
-SQL_ADVISOR_STU_GAP_FULL = '''select * from student where advisor = %(advisor_id)s and grade = 4'''
-SQL_ADVISOR_STU_GPA_BETWEEN = '''select * from student  where advisor = %(advisor_id)s and grade >= 3 AND grade < 4'''
-SQL_REGISTRATIONS_STU_LIST = '''select nuid, course_id from registration where advisor_id = %(advisor_id)s and pending is true'''
+SQL_ADVISOR_STU = '''SELECT * FROM student where advisor = %(employee_id)s'''
+SQL_ADVISOR_STU_AVG_GPA = '''SELECT AVG(grade) FROM student GROUP BY advisor having advisor = %(employee_id)s'''
+SQL_ADVISOR_STU_UNDER_3 = '''select * from student where advisor = %(employee_id)s and grade < 3'''
+SQL_ADVISOR_STU_GAP_FULL = '''select * from student where advisor = %(employee_id)s and grade = 4'''
+SQL_ADVISOR_STU_GPA_BETWEEN = '''select * from student  where advisor = %(employee_id)s and grade >= 3 AND grade < 4'''
+SQL_REGISTRATIONS_STU_LIST = '''select nuid, course_id from registration where advisor_id = %(employee_id)s and pending is true'''
 SQL_REGISTRATION_COMPLETED = '''select course_id from registration where nuid = %(nuid)s and completed is true'''
 SQL_REGISTRATION_PENDING = '''select course_id from registration where nuid = %(nuid)s and pending is true'''
 SQL_REGISTRATION_FAILED = '''select course_id from registration where nuid = %(nuid)s and failed is true'''
@@ -55,9 +55,13 @@ def getAdvisorProfile(request, employee_id):
     }
     return render(request, 'advisor/advisor_profile.html', context)
 
-def getAdvisorStatics(request, advisor_id):
+def getAdvisorStatistics(request, advisor_id):
     print("advisor_id: " )
-    val = {'advisor_id': int(advisor_id)}
+    val = {'employee_id': int(advisor_id)}
+    res = {}
+    cursor.execute(SQL_ADVISOR_INFO, val)
+    advisor_info = cursor.fetchall()
+    res['advisor_name'] = advisor_info[0][1]
     cursor.execute(SQL_ADVISOR_STU, val)
     stu_info = cursor.fetchall()
     cursor.execute(SQL_ADVISOR_STU_AVG_GPA, val)
@@ -68,7 +72,7 @@ def getAdvisorStatics(request, advisor_id):
     stu_gpa_full = cursor.fetchall()
     cursor.execute(SQL_ADVISOR_STU_GPA_BETWEEN, val)
     stu_gpa_between = cursor.fetchall()
-    res = {}
+
     if stu_info:
         res['advisor_id'] = advisor_id
         res['numOfStus'] = len(stu_info[0])
@@ -83,20 +87,22 @@ def getAdvisorStatics(request, advisor_id):
     return render(request, 'advisor/advisor_index.html', context)
 
 
-def getAdvisorNotifications(request, advisor_id):
-    val = {'advisor_id': int(advisor_id)}
+def getAdvisorRequests(request, advisor_id):
+    val = {'employee_id': int(advisor_id)}
+    results = {}
+    cursor.execute(SQL_ADVISOR_INFO, val)
+    advisor_info = cursor.fetchall()
+    results['advisor_name'] = advisor_info[0][1]
     cursor.execute(SQL_REGISTRATIONS_STU_LIST, val)
     pendingList = cursor.fetchall()
     if pendingList:
         res = getStusPendingRegistration(pendingList)
-    results = {}
     results['advisor_id'] = advisor_id
     results['pendings'] = res
-    print(results)
     context = {
         "data" : results
     }
-    return render(request, 'advisor/advisor_notifications.html', context)
+    return render(request, 'advisor/advisor_requests.html', context)
 
 
 def getStusPendingRegistration(pendingList):
@@ -127,6 +133,10 @@ def getStusPendingRegistration(pendingList):
 
 def getAdvisorSearch(request, advisor_id):
     res = {}
+    val = {'employee_id': int(advisor_id)}
+    cursor.execute(SQL_ADVISOR_INFO, val)
+    advisor_info = cursor.fetchall()
+    res['advisor_name'] = advisor_info[0][1]
     res['advisor_id'] = advisor_id
     context = {
         "data": res
@@ -136,9 +146,13 @@ def getAdvisorSearch(request, advisor_id):
 def getSearchDetails(request):
     nuid = request.GET.get('search')
     advisor_id = request.GET.get('advisor')
+    val = {'employee_id': int(advisor_id)}
+    cursor.execute(SQL_ADVISOR_INFO, val)
+    advisor_info = cursor.fetchall()
     val = {'nuid': int(nuid)}
     details = {
         'advisor_id': advisor_id,
+        'advisor_name': advisor_info[0][1],
         'pending_courses': [],
         'approved_courses': [],
         'completed_courses': [],
@@ -173,3 +187,20 @@ def getSearchDetails(request):
         "data": details
     }
     return render(request, 'advisor/advisor_search_details.html', context)
+
+
+from django.shortcuts import render
+from django.http.response import JsonResponse
+from rest_framework.parsers import JSONParser
+from rest_framework import status
+from rest_framework.decorators import api_view
+
+SQL_REGISTRATION_APPROVAL = '''update registration set approved = true, pending = false
+where nuid = %(nuid)s  and pending = true'''
+@api_view(['GET'])
+def approvePendingRequest(request):
+    nuid = request.query_params.get('nuid')
+    val = {'nuid': int(nuid)}
+    cursor.execute(SQL_REGISTRATION_APPROVAL, val)
+    return JsonResponse({"message": "succeed"}, safe=False)
+

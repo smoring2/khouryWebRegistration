@@ -38,9 +38,11 @@
 <div class="container">
     <div class="row mt-2">
         <div class="col-2">
+            <div class="fw-bolder">Advisor: {{stuInfos.advisor_name}}</div>
+            <div class="fw-bolder">ID: {{stuInfos.advisor_id}}</div>
             <div class="list-group">
-                <a href="{% url 'advisor_statics' advisor_id=stuInfos.advisor_id %}" class="list-group-item active">Static</a>
-                <a href="{% url 'advisor_notifications' advisor_id=stuInfos.advisor_id %}" class="list-group-item">Requests</a>
+                <a href="{% url 'advisor_statics' advisor_id=stuInfos.advisor_id %}" class="list-group-item active">Statistics</a>
+                <a href="{% url 'advisor_requests' advisor_id=stuInfos.advisor_id %}" class="list-group-item">Requests</a>
                 <a href="{% url 'advisor_profile' employee_id=stuInfos.advisor_id %}" class="list-group-item">Profile</a>
                 <a href="{% url 'advisor_search' advisor_id=stuInfos.advisor_id %}" class="list-group-item">Search</a>
             </div>

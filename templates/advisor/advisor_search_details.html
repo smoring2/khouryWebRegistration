@@ -23,9 +23,11 @@
 <div class="container">
     <div class="row mt-2">
         <div class="col-2">
+            <div class="fw-bolder">Advisor: {{data.advisor_name}}</div>
+            <div class="fw-bolder">ID: {{data.advisor_id}}</div>
             <div class="list-group">
-                <a href="{% url 'advisor_statics' advisor_id=data.advisor_id %}" class="list-group-item">Static</a>
-                <a href="{% url 'advisor_notifications' advisor_id=data.advisor_id %}"
+                <a href="{% url 'advisor_statics' advisor_id=data.advisor_id %}" class="list-group-item">Statistics</a>
+                <a href="{% url 'advisor_requests' advisor_id=data.advisor_id %}"
                    class="list-group-item">Requests</a>
                 <a href="{% url 'advisor_profile' employee_id=data.advisor_id %}" class="list-group-item">Profile</a>
                 <a href="{% url 'advisor_search' advisor_id=data.advisor_id %}"
@@ -33,6 +35,11 @@
             </div>
         </div>
         <div class="col-10">
+            <div class="input-group">
+                <input id="search-nuid" type="search" class="form-control rounded" placeholder="Search with student nuid..."
+                       aria-label="Search" aria-describedby="search-addon"/>
+                <button type="button" class="btn btn-outline-primary" onclick="setGetParameter()">search</button>
+            </div>
             <div class="bg-light rounded m-2">
                 <h4 class="border border-primary rounded p-2">Courses waiting for approval</h4>
                 {% for c in data.pending_courses %}
@@ -48,7 +55,7 @@
             <div class="bg-light rounded m-2">
                 <h4 class="border border-primary rounded p-2">Courses Completed</h4>
                 {% for c in data.completed_courses %}
-                <p>{{c}}</p>
+                <p id="{{c}}">{{c}}</p>
                 {% endfor %}
             </div>
             <div class="bg-light rounded m-2">
@@ -64,5 +71,11 @@
         </div>
     </div>
 </div>
+<script>
+    function setGetParameter() {
+        searchWord = document.getElementById('search-nuid').value;
+        window.location.href = "{% url 'search_details' %}" + "?advisor=" + {{data.advisor_id}} + "&search=" + searchWord;
+    }
+</script>
 </body>
 </html>
