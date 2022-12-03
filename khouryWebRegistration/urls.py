@@ -14,7 +14,7 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
 from studentInfo import views
 from studentInfo import admin_view
 
@@ -24,6 +24,7 @@ urlpatterns = [
     path('', views.testmysql),
     path('student/', views.StudentList.as_view(), name = 'student_list'),
     path('student/<int:pk>', views.StudentDetails.as_view(), name = 'student_detail'),
+
 
     #admin
     path("admin/home/", admin_view.admin_home, name='admin_home'),
@@ -41,5 +42,13 @@ urlpatterns = [
     path("student/delete/<int:nuid>",
          admin_view.delete_student, name='delete_student'),
     path("course/delete/<int:course_id>",
-         admin_view.delete_course, name='delete_course')
+         admin_view.delete_course, name='delete_course'),
+
+    #advisor
+    path('advisor/profile/<int:employee_id>', views.getAdvisorProfile, name = 'advisor_profile'),
+    path('advisor/<int:advisor_id>', views.getAdvisorStatistics, name = 'advisor_statics'),
+    path('advisor/requests/<int:advisor_id>', views.getAdvisorRequests, name = 'advisor_requests'),
+    path('advisor/search/<int:advisor_id>', views.getAdvisorSearch, name = 'advisor_search'),
+    path('advisor/search/details', views.getSearchDetails, name='search_details'),
+    path('', include('studentInfo.urls')),
 ]
