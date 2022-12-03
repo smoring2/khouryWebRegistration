@@ -40,28 +40,36 @@
                        aria-label="Search" aria-describedby="search-addon"/>
                 <button type="button" class="btn btn-outline-primary" onclick="setGetParameter()">search</button>
             </div>
+            <div class="m-2 p-2 bg-light rounded">
+                <h4 class="border border-primary rounded p-2">Name: {{data.student_name}}</h4>
+                <p>NUID: {{data.nuid}}</p>
+                <p>Student email: {{data.student_email}}</p>
+                <p>Student campus: {{data.student_campus}}</p>
+                <p>Student college: {{data.student_college}}</p>
+                <p>Student department: {{data.student_department}}</p>
+            </div>
             <div class="bg-light rounded m-2">
                 <h4 class="border border-primary rounded p-2">Courses waiting for approval</h4>
                 {% for c in data.pending_courses %}
-                <p>{{c}}</p>
+                <p>{{c.course_id}}  {{c.course_name}}</p>
                 {% endfor %}
             </div>
             <div class="bg-light rounded m-2">
                 <h4 class="border border-primary rounded p-2">Courses approved</h4>
                 {% for c in data.approved_courses %}
-                <p>{{c}}</p>
+                <p>{{c.course_id}}  {{c.course_name}}</p>
                 {% endfor %}
             </div>
             <div class="bg-light rounded m-2">
                 <h4 class="border border-primary rounded p-2">Courses Completed</h4>
                 {% for c in data.completed_courses %}
-                <p id="{{c}}">{{c}}</p>
+                <p id="{{c}}">{{c.course_id}}  {{c.course_name}}</p>
                 {% endfor %}
             </div>
             <div class="bg-light rounded m-2">
                 <h4 class="border border-primary rounded p-2">Courses Failed</h4>
                 {% for c in data.failed_courses %}
-                <p>{{c}}</p>
+                <p>{{c.course_id}}  {{c.course_name}}</p>
                 {% endfor %}
             </div>
             <div>

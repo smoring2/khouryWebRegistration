@@ -1,24 +1,64 @@
-SQL_ADVISOR_INFO = '''SELECT * FROM advisor where employee_id = %(employee_id)s'''
-SQL_ADVISOR_STU = '''SELECT * FROM student where advisor = %(employee_id)s'''
-SQL_ADVISOR_STU_AVG_GPA = '''SELECT AVG(grade) FROM student GROUP BY advisor having advisor = %(employee_id)s'''
-SQL_ADVISOR_STU_UNDER_3 = '''select * from student where advisor = %(employee_id)s and grade < 3'''
-SQL_ADVISOR_STU_GAP_FULL = '''select * from student where advisor = %(employee_id)s and grade = 4'''
-SQL_ADVISOR_STU_GPA_BETWEEN = '''select * from student  where advisor = %(employee_id)s and grade >= 3 AND grade < 4'''
-SQL_REGISTRATIONS_STU_LIST = '''select nuid, course_id from registration where advisor_id = %(employee_id)s and pending is true'''
-SQL_REGISTRATION_COMPLETED = '''select course_id from registration where nuid = %(nuid)s and completed is true'''
-SQL_REGISTRATION_PENDING = '''select course_id from registration where nuid = %(nuid)s and pending is true'''
-SQL_REGISTRATION_FAILED = '''select course_id from registration where nuid = %(nuid)s and failed is true'''
-SQL_REGISTRATION_APPROVED = '''select course_id from registration where nuid = %(nuid)s and approved is true'''
-
 from django.shortcuts import render
 from django.db import connection
+SQL_ADVISOR_INFO = '''SELECT * FROM advisor where employee_id = %(employee_id)s'''
+SQL_COURSE_INFO = '''SELECT * from course where course_id = %(course_id)s '''
+SQL_STUDENT_INFO = '''select * from student where nuid = %(nuid)s '''
+SQL_CAMPUS_INFO = '''Select * from campus where campusid = %(campusid)s'''
+SQL_DEPARTMENT_INFO = '''Select * from department where department_id = %(department_id)s'''
+SQL_COLLEGE_INFO = '''Select * from college where collegeid = %(collegeid)s'''
 cursor= connection.cursor()
 
-def getAdvisorProfile(request, employee_id):
-    print("employee_id: " )
+def getAdvisorInfoById(employee_id):
+#     cursor= connection.cursor()
     val = {'employee_id': int(employee_id)}
     cursor.execute(SQL_ADVISOR_INFO, val)
     advisor_info = cursor.fetchall()
+#     cursor.close()
+    return advisor_info
+
+def getCourseInfoByCourseId(course_id):
+    #     cursor= connection.cursor()
+    val = {'course_id': int(course_id)}
+    cursor.execute(SQL_COURSE_INFO, val)
+    course_info = cursor.fetchall()
+    #     cursor.close()
+    return course_info
+
+
+def getStudentInfoByNuid(nuid):
+    cursor = connection.cursor()
+    val = {'nuid': int(nuid)}
+    cursor.execute(SQL_STUDENT_INFO, val)
+    student_info = cursor.fetchall()
+    #     cursor.close()
+    return student_info
+
+def getDepartmentByDepartmentId(department_id):
+    cursor = connection.cursor()
+    val = {'department_id': int(department_id)}
+    cursor.execute(SQL_DEPARTMENT_INFO, val)
+    department_info = cursor.fetchall()
+    #     cursor.close()
+    return department_info
+
+def getCampusByCampusId(campusid):
+    cursor = connection.cursor()
+    val = {'campusid': int(campusid)}
+    cursor.execute(SQL_CAMPUS_INFO, val)
+    campus_info = cursor.fetchall()
+    #     cursor.close()
+    return campus_info
+
+def getCollegeByCollegeid(colleageid):
+    cursor = connection.cursor()
+    val = {'collegeid': int(colleageid)}
+    cursor.execute(SQL_COLLEGE_INFO, val)
+    college_info = cursor.fetchall()
+    #     cursor.close()
+    return college_info
+
+def getAdvisorProfile(request, employee_id):
+    advisor_info = getAdvisorInfoById(employee_id)
     res = {}
     if advisor_info:
         res['employee_id'] = employee_id
@@ -31,13 +71,17 @@ def getAdvisorProfile(request, employee_id):
     }
     return render(request, 'advisor/advisor_profile.html', context)
 
+SQL_ADVISOR_STU = '''SELECT * FROM student where advisor = %(employee_id)s'''
+SQL_ADVISOR_STU_AVG_GPA = '''SELECT AVG(grade) FROM student GROUP BY advisor having advisor = %(employee_id)s'''
+SQL_ADVISOR_STU_UNDER_3 = '''select * from student where advisor = %(employee_id)s and grade < 3'''
+SQL_ADVISOR_STU_GAP_FULL = '''select * from student where advisor = %(employee_id)s and grade = 4'''
+SQL_ADVISOR_STU_GPA_BETWEEN = '''select * from student  where advisor = %(employee_id)s and grade >= 3 AND grade < 4'''
 def getAdvisorStatistics(request, advisor_id):
-    print("advisor_id: " )
-    val = {'employee_id': int(advisor_id)}
     res = {}
-    cursor.execute(SQL_ADVISOR_INFO, val)
-    advisor_info = cursor.fetchall()
+    #     cursor= connection.cursor()
+    advisor_info = getAdvisorInfoById(advisor_id)
     res['advisor_name'] = advisor_info[0][1]
+    val = {'employee_id': int(advisor_id)}
     cursor.execute(SQL_ADVISOR_STU, val)
     stu_info = cursor.fetchall()
     cursor.execute(SQL_ADVISOR_STU_AVG_GPA, val)
@@ -60,15 +104,16 @@ def getAdvisorStatistics(request, advisor_id):
     context = {
         "stuInfos": res
     }
+    #     cursor.close()
     return render(request, 'advisor/advisor_index.html', context)
 
-
+SQL_REGISTRATIONS_STU_LIST = '''select nuid, course_id from registration where advisor_id = %(employee_id)s and pending is true'''
 def getAdvisorRequests(request, advisor_id):
-    val = {'employee_id': int(advisor_id)}
     results = {}
-    cursor.execute(SQL_ADVISOR_INFO, val)
-    advisor_info = cursor.fetchall()
+    #     cursor= connection.cursor()
+    advisor_info = getAdvisorInfoById(advisor_id)
     results['advisor_name'] = advisor_info[0][1]
+    val = {'employee_id': int(advisor_id)}
     cursor.execute(SQL_REGISTRATIONS_STU_LIST, val)
     pendingList = cursor.fetchall()
     if pendingList:
@@ -78,29 +123,27 @@ def getAdvisorRequests(request, advisor_id):
     context = {
         "data" : results
     }
+    #     cursor.close()
     return render(request, 'advisor/advisor_requests.html', context)
 
-
 def getStusPendingRegistration(pendingList):
-    SQL_STU_INFO = """select name, grade from student where nuid = %(nuid)s"""
     dict = {}
     for pending in pendingList:
         nuid = pending[0]
         course_id = pending[1]
-        val = {'nuid' : int(nuid)}
+        course_name = getCourseInfoByCourseId(course_id)[0][1]
         if nuid in dict:
-            dict[nuid]["courses"].append(course_id)
+            dict[nuid]["courses"].append({'course_id': course_id, 'course_name': course_name})
             continue
-        cursor.execute(SQL_STU_INFO, val)
-        stu_info = cursor.fetchall()
+        stu_info = getStudentInfoByNuid(nuid)
         if stu_info:
-            stu_name = stu_info[0][0]
-            stu_grade = stu_info[0][1]
+            stu_name = stu_info[0][1]
+            stu_grade = stu_info[0][10]
             dict[nuid] = {
                 "nuid": nuid,
                 "name": stu_name,
                 'grade': stu_grade,
-                "courses": [course_id],
+                "courses": [{'course_id': course_id, 'course_name': course_name}],
             }
     results = []
     for key, vals in dict.items():
@@ -110,8 +153,7 @@ def getStusPendingRegistration(pendingList):
 def getAdvisorSearch(request, advisor_id):
     res = {}
     val = {'employee_id': int(advisor_id)}
-    cursor.execute(SQL_ADVISOR_INFO, val)
-    advisor_info = cursor.fetchall()
+    advisor_info = getAdvisorInfoById(advisor_id)
     res['advisor_name'] = advisor_info[0][1]
     res['advisor_id'] = advisor_id
     context = {
@@ -119,14 +161,25 @@ def getAdvisorSearch(request, advisor_id):
     }
     return render(request, 'advisor/advisor_search.html', context)
 
+SQL_REGISTRATION_COMPLETED = '''select course_id from registration where nuid = %(nuid)s and completed is true'''
+SQL_REGISTRATION_PENDING = '''select course_id from registration where nuid = %(nuid)s and pending is true'''
+SQL_REGISTRATION_FAILED = '''select course_id from registration where nuid = %(nuid)s and failed is true'''
+SQL_REGISTRATION_APPROVED = '''select course_id from registration where nuid = %(nuid)s and approved is true'''
 def getSearchDetails(request):
     nuid = request.GET.get('search')
     advisor_id = request.GET.get('advisor')
-    val = {'employee_id': int(advisor_id)}
-    cursor.execute(SQL_ADVISOR_INFO, val)
-    advisor_info = cursor.fetchall()
-    val = {'nuid': int(nuid)}
+    advisor_info = getAdvisorInfoById(advisor_id)
+    student_info = getStudentInfoByNuid(nuid)
+    campus_info = getCampusByCampusId(student_info[0][4])
+    college_info = getCollegeByCollegeid(student_info[0][5])
+    department_info = getDepartmentByDepartmentId(student_info[0][6])
     details = {
+        'nuid': nuid,
+        'student_name': student_info[0][1],
+        'student_email': student_info[0][2],
+        'student_campus': campus_info[0][1],
+        'student_college': college_info[0][1],
+        'student_department': department_info[0][1],
         'advisor_id': advisor_id,
         'advisor_name': advisor_info[0][1],
         'pending_courses': [],
@@ -134,35 +187,60 @@ def getSearchDetails(request):
         'completed_courses': [],
         'failed_courses': []
     }
-
+    #     cursor= connection.cursor()
+    val = {'nuid': int(nuid)}
     cursor.execute(SQL_REGISTRATION_PENDING, val)
     results = cursor.fetchall()
     if results:
         for r in results:
-            details['pending_courses'].append(r[0])
+            course_id = r[0]
+            course_info = getCourseInfoByCourseId(r[0])
+            details['pending_courses'].append({'course_id':course_id, 'course_name':course_info[0][1]})
 
     cursor.execute(SQL_REGISTRATION_APPROVED, val)
     results = cursor.fetchall()
     if results:
         for r in results:
-            details['approved_courses'].append(r[0])
+             course_id = r[0]
+             course_info = getCourseInfoByCourseId(r[0])
+             details['approved_courses'].append({'course_id':course_id, 'course_name':course_info[0][1]})
 
     cursor.execute(SQL_REGISTRATION_COMPLETED, val)
     results = cursor.fetchall()
     if results:
         for r in results:
-            details['completed_courses'].append(r[0])
+            course_id = r[0]
+            course_info = getCourseInfoByCourseId(r[0])
+            details['completed_courses'].append({'course_id':course_id, 'course_name':course_info[0][1]})
 
     cursor.execute(SQL_REGISTRATION_FAILED, val)
     results = cursor.fetchall()
     if results:
         for r in results:
-            details['failed_courses'].append(r[0])
+            course_id = r[0]
+            course_info = getCourseInfoByCourseId(r[0])
+            details['failed_courses'].append({'course_id':course_id, 'course_name':course_info[0][1]})
 
     context = {
         "data": details
     }
+    #     cursor.close()
     return render(request, 'advisor/advisor_search_details.html', context)
+
+SQL_ADVISOR_STUS_LIST = '''select * from student where nuid = %(nuid)s'''
+def getMyStudentsList(request):
+    #     cursor= connection.cursor()
+    advisor_id = request.GET.get('advisor_id')
+    var = {'advisor_id': int(advisor_id)}
+    cursor.execute(SQL_ADVISOR_STUS_LIST, var)
+    res = cursor.fetchall()
+    context = {
+        "data": res
+    }
+    #     cursor.close()
+    return render(request, 'advisor/advisor_students.html', context)
+
+
 
 
 

@@ -41,11 +41,13 @@
                 <div class="bg-light rounded p-2">
                     <p class="fw-bolder">Course Plan</p>
                     {% for c in pending.courses %}
-                    <p>{{c}}</p>
+
+                        <p>{{c.course_id}} {{c.course_name}}</p>
+
                     {% endfor %}
                 </div>
                 <button class="btn btn-primary" onclick="approve({{pending.nuid}})">Approve</button>
-                <button class="btn btn-danger">Reject</button>
+                <button class="btn btn-danger" onclick="reject({{pending.nuid}})">Reject</button>
             </div>
             {% endfor %}
         </div>
@@ -58,13 +60,23 @@
             return response.json();
         }).then(function(data) {
             console.log(data);
+            alert("Approved successfully!")
             location.reload()
         }).catch(function() {
             console.log("error");
         });
     }
     function reject(nuid) {
-        //to do:
+        url = "/api/advisor/reject?nuid=" + nuid;
+        fetch(url).then(function(response) {
+            return response.json();
+        }).then(function(data) {
+            console.log(data);
+            alert("Rejected successfully!")
+            location.reload()
+        }).catch(function() {
+            console.log("error");
+        });
     }
 </script>
 </body>

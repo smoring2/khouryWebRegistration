@@ -16,3 +16,11 @@ def approvePendingRequest(request):
     cursor.execute(SQL_REGISTRATION_APPROVAL, val)
     return JsonResponse({"message": "succeed"}, safe=False)
 
+SQL_REGISTRATION_REJECTION = '''update registration set rejected = true, pending = false
+where nuid= %(nuid)s and pending = true'''
+@api_view(['GET'])
+def rejectPendingRequest(request):
+    nuid = request.query_params.get('nuid')
+    val = {'nuid': int(nuid)}
+    cursor.execute(SQL_REGISTRATION_REJECTION, val)
+    return JsonResponse({"message": "succeed"}, safe=False)
