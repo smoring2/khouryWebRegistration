@@ -8,6 +8,32 @@
 from django.db import models
 
 
+class Admin(models.Model):
+    employee_id = models.IntegerField(primary_key=True)
+    name = models.CharField(max_length=45, blank=True, null=True)
+    email = models.CharField(max_length=100, blank=True, null=True)
+    phone = models.IntegerField(blank=True, null=True)
+    department = models.ForeignKey('Department', models.DO_NOTHING, blank=True, null=True)
+    password = models.CharField(max_length=20, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'admin'
+
+
+class Advisor(models.Model):
+    employee_id = models.IntegerField(primary_key=True)
+    name = models.CharField(max_length=45, blank=True, null=True)
+    email = models.CharField(max_length=100, blank=True, null=True)
+    phone = models.IntegerField(blank=True, null=True)
+    department = models.ForeignKey('Department', models.DO_NOTHING, blank=True, null=True)
+    password = models.CharField(max_length=20, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'advisor'
+
+
 class AuthGroup(models.Model):
     name = models.CharField(unique=True, max_length=150)
 
@@ -77,6 +103,64 @@ class AuthUserUserPermissions(models.Model):
         unique_together = (('user', 'permission'),)
 
 
+class Building(models.Model):
+    building_id = models.IntegerField(primary_key=True)
+    building_name = models.CharField(max_length=45, blank=True, null=True)
+    building_address = models.CharField(max_length=45, blank=True, null=True)
+    campusid = models.ForeignKey('Campus', models.DO_NOTHING, db_column='campusid', blank=True, null=True)
+    num_of_classrooms = models.IntegerField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'building'
+
+
+class Campus(models.Model):
+    campusid = models.IntegerField(primary_key=True)
+    campus_name = models.CharField(max_length=45, blank=True, null=True)
+    location = models.CharField(max_length=45, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'campus'
+
+
+class College(models.Model):
+    collegeid = models.IntegerField(primary_key=True)
+    name = models.CharField(max_length=45, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'college'
+
+
+class Course(models.Model):
+    course_id = models.IntegerField(primary_key=True)
+    instructor = models.ForeignKey('Instructor', models.DO_NOTHING, blank=True, null=True)
+    meeting_time = models.TimeField(blank=True, null=True)
+    max_num_of_students = models.IntegerField(blank=True, null=True)
+    semester = models.IntegerField(blank=True, null=True)
+    semester_hrs = models.IntegerField(blank=True, null=True)
+    registered_num_of_stud = models.IntegerField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'course'
+
+
+class Department(models.Model):
+    department_id = models.IntegerField(primary_key=True)
+    department_name = models.CharField(max_length=20, blank=True, null=True)
+    office_address = models.CharField(max_length=100, blank=True, null=True)
+    dean_name = models.CharField(max_length=20, blank=True, null=True)
+    phone = models.IntegerField(blank=True, null=True)
+    average_gpa = models.FloatField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'department'
+
+
 class DjangoAdminLog(models.Model):
     action_time = models.DateTimeField()
     object_id = models.TextField(blank=True, null=True)
@@ -122,20 +206,81 @@ class DjangoSession(models.Model):
         db_table = 'django_session'
 
 
-class Student(models.Model):
-    nuid = models.IntegerField(primary_key=True, max_length=8)
-    name = models.CharField(max_length=8, blank=True, null=True)
-    email = models.CharField(max_length=45, blank=True, null=True)
-    bdate = models.DateField(blank=True, null=True)
-    campusid = models.IntegerField(blank=True, null=True, max_length=8)
-    collegeid = models.IntegerField(blank=True, null=True, max_length=8)
-    phone = models.IntegerField(blank=True, null=True, max_length=10)
-    advisor = models.IntegerField(blank=True, null=True, max_length=10)
-    photo = models.CharField(max_length=45, blank=True, null=True)
-    grade = models.DecimalField(blank=True, null=True, max_digits = 4, decimal_places=2)
-    semesterhour = models.IntegerField(blank=True, null=True, max_length=3)
-    password = models.CharField(max_length=20)
+class Instructor(models.Model):
+    employee_id = models.IntegerField(primary_key=True)
+    email = models.CharField(max_length=100, blank=True, null=True)
+    phone = models.IntegerField(blank=True, null=True)
+    name = models.CharField(max_length=20, blank=True, null=True)
+    department = models.ForeignKey(Department, models.DO_NOTHING, blank=True, null=True)
+    campusid = models.ForeignKey(Campus, models.DO_NOTHING, db_column='campusid', blank=True, null=True)
+    office_hour = models.TimeField(blank=True, null=True)
 
     class Meta:
-        # managed = False
+        managed = False
+        db_table = 'instructor'
+
+
+class Registration(models.Model):
+    nuid = models.IntegerField(primary_key=True)
+    course = models.ForeignKey(Course, models.DO_NOTHING)
+    advisor_id = models.IntegerField()
+    approved = models.IntegerField(blank=True, null=True)
+    completed = models.IntegerField(blank=True, null=True)
+    failed = models.IntegerField(blank=True, null=True)
+    pending = models.IntegerField(blank=True, null=True)
+    todo = models.CharField(max_length=45, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'registration'
+        unique_together = (('nuid', 'course', 'advisor_id'),)
+
+
+class Room(models.Model):
+    room_id = models.IntegerField(primary_key=True)
+    building = models.ForeignKey(Building, models.DO_NOTHING, blank=True, null=True)
+    campusid = models.ForeignKey(Campus, models.DO_NOTHING, db_column='campusid', blank=True, null=True)
+    max_capacity = models.IntegerField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'room'
+
+
+class Student(models.Model):
+    nuid = models.IntegerField(primary_key=True)
+    name = models.CharField(max_length=50, blank=True, null=True)
+    email = models.CharField(max_length=100, blank=True, null=True)
+    bdate = models.DateField(blank=True, null=True)
+    campusid = models.ForeignKey(Campus, models.DO_NOTHING, db_column='campusid', blank=True, null=True)
+    collegeid = models.ForeignKey(College, models.DO_NOTHING, db_column='collegeid', blank=True, null=True)
+    department = models.ForeignKey(Department, models.DO_NOTHING, blank=True, null=True)
+    phone = models.IntegerField(blank=True, null=True)
+    advisor = models.ForeignKey(Advisor, models.DO_NOTHING, db_column='advisor', blank=True, null=True)
+    photo = models.CharField(max_length=45, blank=True, null=True)
+    grade = models.FloatField(blank=True, null=True)
+    semesterhour = models.IntegerField(blank=True, null=True)
+    password = models.CharField(max_length=20, blank=True, null=True)
+
+    class Meta:
+        managed = False
         db_table = 'student'
+
+
+class Ta(models.Model):
+    nuid = models.IntegerField(primary_key=True)
+    name = models.CharField(max_length=45, blank=True, null=True)
+    email = models.CharField(max_length=100, blank=True, null=True)
+    campusid = models.ForeignKey(Campus, models.DO_NOTHING, db_column='campusid', blank=True, null=True)
+    collegeid = models.ForeignKey(College, models.DO_NOTHING, db_column='collegeid', blank=True, null=True)
+    department = models.ForeignKey(Department, models.DO_NOTHING, blank=True, null=True)
+    phone = models.IntegerField(blank=True, null=True)
+    advisor = models.ForeignKey(Advisor, models.DO_NOTHING, db_column='advisor', blank=True, null=True)
+    photo = models.CharField(max_length=45, blank=True, null=True)
+    grade = models.CharField(max_length=45, blank=True, null=True)
+    semester_hour = models.CharField(max_length=45, blank=True, null=True)
+    course_id = models.IntegerField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'ta'

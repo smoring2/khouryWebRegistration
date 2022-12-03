@@ -1,0 +1,99 @@
+{% load static %}
+<aside class="main-sidebar sidebar-dark-primary elevation-4">
+
+    <!-- title -->
+    <a href="{% url 'admin_home' %}" class="brand-link">
+        <span class="brand-text font-weight-light">Admin</span>
+    </a>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <!-- Sidebar Menu -->
+        <nav class="mt-2">
+            <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
+
+                <li class="nav-item">
+                    {% url 'admin_home' as admin_home %}
+                    <a href="{{admin_home}}" class="nav-link {% if admin_home == request.path %} active {% endif %}">
+                        <i class="nav-icon fas fa-th"></i>
+                        <p>
+                            Home
+
+                        </p>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    {% url 'add_advisor' as add_advisor %}
+                    <a href="{{add_advisor}}" class="nav-link {% if add_advisor == request.path %} active {% endif %}">
+                        <i class="nav-icon fas fa-th"></i>
+                        <p>
+                            Add Advisor
+
+                        </p>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    {% url 'manage_advisor' as manage_advisor %}
+                    {% url 'edit_advisor' employee_id as edit_advisor %}
+                    <a href="{{manage_advisor}}"
+                        class="nav-link {% if manage_advisor == request.path or request.path == edit_advisor %} active {% endif %}">
+                        <i class="nav-icon fas fa-th"></i>
+                        <p>
+                            Manage Advisor
+
+                        </p>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    {% url 'add_student' as add_student%}
+                    <a href="{{add_student}}" class="nav-link  {% if add_student == request.path %} active {% endif %}">
+                        <i class="nav-icon fas fa-th"></i>
+                        <p>
+                            Add Student
+
+                        </p>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    {% url 'manage_student' as manage_student %}
+                    {% url 'edit_student' nuid as edit_student %}
+
+                    <a href="{{manage_student}}"
+                        class="nav-link  {% if edit_student == request.path or manage_student == request.path %} active {% endif %}">
+                        <i class="nav-icon fas fa-th"></i>
+                        <p>
+                            Manage Student
+
+                        </p>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    {% url 'add_course' as add_course %}
+                    <a href="{{add_course}}" class="nav-link  {% if add_course == request.path %} active {% endif %}">
+                        <i class="nav-icon fas fa-th"></i>
+                        <p>
+                            Add Course
+
+                        </p>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    {% url 'manage_course' as manage_course %}
+                    {% url 'edit_course' course_id as edit_course %}
+                    <a href="{{manage_course}}"
+                        class="nav-link  {% if edit_course == request.path or manage_course == request.path %} active {% endif %}">
+                        <i class="nav-icon fas fa-th"></i>
+                        <p>
+                            Manage Course
+
+                        </p>
+                    </a>
+                </li>
+
+            
+                </ul>
+                </nav>
+                <!-- /.sidebar-menu -->
+                </div>
+                <!-- /.sidebar -->
+                </aside>

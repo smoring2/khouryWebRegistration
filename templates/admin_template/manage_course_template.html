@@ -1,0 +1,54 @@
+{% extends 'admin_template/base.html' %}
+{% load static %}
+{% block page_title %}{{page_title}}{% endblock page_title %}
+
+{% block content %}
+
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">{{page_title}}</h3>
+                    </div>
+                    <!-- /.card-header -->
+                    <div class="card-body">
+                        <table id="example2" class="table table-bordered table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Course ID</th>
+                                    <th>Instructor</th>
+                                    <th>Meeting Time</th>
+                                    <th>Capacity</th>
+                                    <th>Semester</th>
+                                    <th>Semester Hours</th>
+                                    <th>Registered no. of Students</th>
+                                    
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for course in courses %}
+                                <tr>
+                                    <td>{{course.course_id}}</td>
+                                    <td>{{course.instructor.name}}</td>
+                                    <td>{{course.meeting_time}}</td>
+                                    <td>{{course.max_num_of_students}}</td>
+                                    <td>{{course.semester}}</td>
+                                    <td>{{course.semester_hrs}}</td>
+                                    <td>{{course.registered_num_of_stud}}</td>
+                                    <td>
+                                        <a href="{% url 'edit_course' course.course_id %}" class="btn btn-primary">Edit</a> -
+                                        <a href="{% url 'delete_course' course.course_id %}" class="btn btn-danger">Delete</a> 
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock content %}

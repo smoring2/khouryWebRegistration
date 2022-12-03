@@ -1,0 +1,72 @@
+{% extends 'admin_template/base.html' %}
+{% load static %}
+{% block page_title %}{{page_title}}{% endblock page_title %}
+
+{% block content %}
+
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">{{page_title}}</h3>
+                    </div>
+                    <!-- /.card-header -->
+                    <div class="card-body">
+                        <table id="example2" class="table table-bordered table-hover">
+                            <thead>
+                                <tr>
+                                    <th>NUID</th>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Birthday</th>
+                                    <th>Campus ID</th>
+                                    <th>College ID</th>
+                                    <th>Department</th>
+                                    <th>Phone #</th>
+                                    <th>Advisor</th>
+                                    <th>Photo</th>
+                                    <th>Grade</th>
+                                    <th>Semester</th>
+                                    <th>Edit</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for student in students %}
+                                <tr>
+                                    <td>{{ student.nuid }}</td>
+                                    <td>{{student.name}}</td>
+                                    <td>{{student.email}}</td>
+                                    <td>{{student.bdate}}</td>
+                                    <td>{{student.campusid}}</td>
+                                    <td>{{student.collageid}}</td>
+                                    <td>{{student.department.department_name}}</td>
+                                    <td>{{student.phone}}</td>
+                                    <td>{{student.advisor}}</td>
+                                    <td>
+                                        {% if student.photo == ""  %}
+                                        No Image
+                                        {% else %}
+                                        <img class="img img-fluid mb-2" height="100" width="100"
+                                            src="{{student.photo}}" alt="">
+                                        {% endif %}
+                                    </td>
+                                    <td>{{student.grade}}</td>
+                                    <td>{{student.semesterhour}}</td>
+                                    
+                                    <td><a href="{% url 'edit_student' student.nuid %}" class="btn btn-primary">Edit</a>
+                                        <a href="{% url 'delete_student' student.nuid %}" class="btn btn-danger">Delete</a>
+
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock content %}
