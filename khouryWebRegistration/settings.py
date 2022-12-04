@@ -95,7 +95,7 @@ if os.getenv('GAE_APPLICATION', None):
             'HOST': '/cloudsql/db-group12-365720:us-central1:cs5200team12',
             'USER': 'cs5200team12',
             'PASSWORD': 'a12345678'
-        } 
+        }
     }
 else:
     DATABASES = {

@@ -7,10 +7,10 @@ drop trigger cal_average_gpa_department_trigger_insert;
 drop trigger cal_average_gpa_department_trigger_update;
 drop trigger cal_average_gpa_department_trigger_delete;
 
+drop table registration;
 drop table admin;
 drop table student;
 drop table ta;
-drop table registration;
 drop table room;
 drop table building;
 drop table course;

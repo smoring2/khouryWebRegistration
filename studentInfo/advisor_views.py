@@ -74,8 +74,9 @@ def getAdvisorProfile(request, employee_id):
 SQL_ADVISOR_STU = '''SELECT * FROM student where advisor = %(employee_id)s'''
 SQL_ADVISOR_STU_AVG_GPA = '''SELECT AVG(grade) FROM student GROUP BY advisor having advisor = %(employee_id)s'''
 SQL_ADVISOR_STU_UNDER_3 = '''select * from student where advisor = %(employee_id)s and grade < 3'''
-SQL_ADVISOR_STU_GAP_FULL = '''select * from student where advisor = %(employee_id)s and grade = 4'''
+SQL_ADVISOR_STU_GAP_FULL = '''select * from student where advisor = %(employee_id)s and grade >= 4'''
 SQL_ADVISOR_STU_GPA_BETWEEN = '''select * from student  where advisor = %(employee_id)s and grade >= 3 AND grade < 4'''
+
 def getAdvisorStatistics(request, advisor_id):
     res = {}
     #     cursor= connection.cursor()
@@ -95,7 +96,7 @@ def getAdvisorStatistics(request, advisor_id):
 
     if stu_info:
         res['advisor_id'] = advisor_id
-        res['numOfStus'] = len(stu_info[0])
+        res['numOfStus'] = len(stu_info)
         res['avg_gpa'] = stu_avg_gpa[0][0]
         res['numOfStusUnder'] = len(stu_gpa_under)
         res['numOfStusFull'] = len(stu_gpa_full)
@@ -107,7 +108,7 @@ def getAdvisorStatistics(request, advisor_id):
     #     cursor.close()
     return render(request, 'advisor/advisor_index.html', context)
 
-SQL_REGISTRATIONS_STU_LIST = '''select nuid, course_id from registration where advisor_id = %(employee_id)s and pending is true'''
+SQL_REGISTRATIONS_STU_LIST = '''select nuid, course_id from registration where advisor_id = %(employee_id)s and status='pending' '''
 def getAdvisorRequests(request, advisor_id):
     results = {}
     #     cursor= connection.cursor()
@@ -116,6 +117,7 @@ def getAdvisorRequests(request, advisor_id):
     val = {'employee_id': int(advisor_id)}
     cursor.execute(SQL_REGISTRATIONS_STU_LIST, val)
     pendingList = cursor.fetchall()
+    res =[]
     if pendingList:
         res = getStusPendingRegistration(pendingList)
     results['advisor_id'] = advisor_id
@@ -161,10 +163,10 @@ def getAdvisorSearch(request, advisor_id):
     }
     return render(request, 'advisor/advisor_search.html', context)
 
-SQL_REGISTRATION_COMPLETED = '''select course_id from registration where nuid = %(nuid)s and completed is true'''
-SQL_REGISTRATION_PENDING = '''select course_id from registration where nuid = %(nuid)s and pending is true'''
-SQL_REGISTRATION_FAILED = '''select course_id from registration where nuid = %(nuid)s and failed is true'''
-SQL_REGISTRATION_APPROVED = '''select course_id from registration where nuid = %(nuid)s and approved is true'''
+SQL_REGISTRATION_COMPLETED = '''select course_id, grade from registration where nuid = %(nuid)s and status = 'completed' '''
+SQL_REGISTRATION_PENDING = '''select course_id from registration where nuid = %(nuid)s and status = 'pending' '''
+SQL_REGISTRATION_FAILED = '''select course_id, grade from registration where nuid = %(nuid)s and status = 'failed' '''
+SQL_REGISTRATION_APPROVED = '''select course_id from registration where nuid = %(nuid)s and status = 'approved' '''
 def getSearchDetails(request):
     nuid = request.GET.get('search')
     advisor_id = request.GET.get('advisor')
@@ -177,9 +179,11 @@ def getSearchDetails(request):
         'nuid': nuid,
         'student_name': student_info[0][1],
         'student_email': student_info[0][2],
+        "student_grade": student_info[0][10],
         'student_campus': campus_info[0][1],
         'student_college': college_info[0][1],
         'student_department': department_info[0][1],
+        'student_hours': student_info[0][11],
         'advisor_id': advisor_id,
         'advisor_name': advisor_info[0][1],
         'pending_courses': [],
@@ -211,7 +215,7 @@ def getSearchDetails(request):
         for r in results:
             course_id = r[0]
             course_info = getCourseInfoByCourseId(r[0])
-            details['completed_courses'].append({'course_id':course_id, 'course_name':course_info[0][1]})
+            details['completed_courses'].append({'course_id':course_id, 'course_name':course_info[0][1], 'course_gpa': r[1]})
 
     cursor.execute(SQL_REGISTRATION_FAILED, val)
     results = cursor.fetchall()
@@ -219,7 +223,7 @@ def getSearchDetails(request):
         for r in results:
             course_id = r[0]
             course_info = getCourseInfoByCourseId(r[0])
-            details['failed_courses'].append({'course_id':course_id, 'course_name':course_info[0][1]})
+            details['failed_courses'].append({'course_id':course_id, 'course_name':course_info[0][1], 'course_gpa': r[1]})
 
     context = {
         "data": details
@@ -227,16 +231,22 @@ def getSearchDetails(request):
     #     cursor.close()
     return render(request, 'advisor/advisor_search_details.html', context)
 
-SQL_ADVISOR_STUS_LIST = '''select * from student where nuid = %(nuid)s'''
-def getMyStudentsList(request):
+SQL_ADVISOR_STUS_LIST = '''select * from student where advisor = %(advisor)s '''
+def getMyStudentsList(request, advisor_id):
     #     cursor= connection.cursor()
-    advisor_id = request.GET.get('advisor_id')
-    var = {'advisor_id': int(advisor_id)}
+    var = {'advisor': int(advisor_id)}
     cursor.execute(SQL_ADVISOR_STUS_LIST, var)
-    res = cursor.fetchall()
-    context = {
-        "data": res
+    students = cursor.fetchall()
+    advisor_info = getAdvisorInfoById(advisor_id)
+    results = {
+        'advisor_id': int(advisor_id),
+        'advisor_name': advisor_info[0][1],
+        'students': students
     }
+    context = {
+        "data": results
+    }
+    print(results)
     #     cursor.close()
     return render(request, 'advisor/advisor_students.html', context)
 

@@ -24,7 +24,7 @@ create table instructor(employee_id int primary key, email varchar(100), phone i
                         campusid int, office_hour time, foreign key (department_id) references department(department_id),
                         foreign key (campusid) references campus(campusid));
 
-create table course(course_id int primary key, instructor_id int, meeting_time time, max_num_of_students int, semester int,
+create table course(course_id int primary key, course_name varchar(255), instructor_id int, meeting_time time, max_num_of_students int, semester int,
                     semester_hrs int, registered_num_of_stud int, foreign key (instructor_id) references instructor(employee_id));
 
 
@@ -43,19 +43,23 @@ create table ta(nuid int primary key, name varchar(45), email varchar(100), camp
                 foreign key (campusid) references campus(campusid), foreign key (collegeid) references college(collegeid),
                 foreign key (department_id) references department(department_id));
 
-
-create table registration(nuid int primary key, course_id int, advisor_id int, approved bool, completed bool, failed bool,
-                          pending bool, todo varchar(45), foreign key (course_id) references course(course_id));
-
 create table room (room_id int primary key, building_id int, campusid int, max_capacity int, foreign key (building_id)
     references building(building_id), foreign key (campusid) references campus(campusid));
 
 Create table student(nuid int primary key, name varchar(50), email varchar(100), bdate date, campusid int, collegeid int(10),
-                     department_id int, phone int(11), advisor int(10), photo varchar(45), grade double, semesterhour int,
+                     department_id int, phone int(11), advisor int(10), photo varchar(45), grade double, semesterhour int, password varchar(20),
                      foreign key (advisor) references advisor(employee_id),
-                     foreign key (campusid) references campus(campusid), foreign key (collegeid) references college(collegeid), foreign key
-                         (department_id) references department(department_id), password varchar(20));
+                     foreign key (campusid) references campus(campusid),
+                      foreign key (collegeid) references college(collegeid),
+                      foreign key (department_id) references department(department_id));
 
+create table registration(nuid int, course_id int, advisor_id int, approved bool, rejected bool, completed bool, failed bool,
+                          pending bool, grade double,
+                          foreign key (course_id) references course(course_id),
+                          foreign key (advisor_id) references advisor(employee_id),
+                          foreign key (nuid) references student(nuid),
+                          primary key (nuid, course_id, advisor_id)
+);
 -- view 1 dpt1stu
 -- see all department 1's students info
 # drop view dpt1stu;
@@ -193,3 +197,20 @@ delimiter ;
 # select * from department where department_id = 1;
 # delete from student where nuid = 7;
 # select * from department where department_id = 1;
+
+
+
+delimiter  //
+create trigger gpa_status
+    before update
+    on registration
+    for each row
+begin
+    if new.grade is not null and new.grade >= 3.0 then
+        set new.status = 'completed';
+    end if;
+    if new.grade < 3.0 then
+        set new.status = 'failed';
+    end if;
+end //
+delimiter ;

@@ -30,13 +30,13 @@ insert into instructor values (1, 'lee@northeastern.edu', 11112222, 'Lee', 1, 1,
                               (6, 'peter@northeastern.edu', 55550000, 'Peter', 6, 6, '15:00:00'),
                               (7, 'alicia@northeastern.edu', 66660000, 'Alicia', 7, 7, '16:00:00');
                               
-insert into course values (5200, 1, '18:00:00', 45, 2, 4, 37),
-			  (5520, 1, '10:00:00', 45, 2, 4, 40),
-                          (6620, 2, '10:00:00', 70, 1, 4, 50),
-                          (5800, 3, '18:00:00', 45, 3, 4, 35),
-                          (5008, 4, '14:00:00', 50, 1, 4, 40),
-                          (5004, 5, '13:00:00', 60, 1, 4, 50),
-                          (6650, 6, '19:00:00', 40, 3, 4, 40);
+insert into course values (5200, 'Database Management Systems', 1, '18:00:00', 45, 2, 4, 37),
+                          (5520, 'Mobile Application Development', 1,  '10:00:00', 45, 2, 4, 40),
+                          (6620, 'Fundamentals of Cloud Computing', 2, '10:00:00', 70, 1, 4, 50),
+                          (5800, 'Algorithms', 3, '18:00:00', 45, 3, 4, 35),
+                          (5008, 'Data Structures, Algorithms, and Their Applications within Computer Systems', 4, '14:00:00', 50, 1, 4, 40),
+                          (5004, 'Object-Oriented Design', 5, '13:00:00', 60, 1, 4, 50),
+                          (6650, 'Building Scalable Distributed System', 6, '19:00:00', 40, 3, 4, 40);
                           
 insert into college values (12, 'Liberal art and sciences'),
 			   (13, 'Engineering'),
@@ -70,21 +70,14 @@ insert into ta values (1, 'Lily', 'lily@northeastern.edu', 1, 12, 1, 43211000, 8
                       (8, 'Dede', 'dede@northeastern.edu', 5, 16, 5, 43216000, 11, '/imgs/dede.png', 6, 4, 5004),
                       (9, 'Pepper', 'pepper@northeastern.edu', 6, 17, 6, 43217000, 11, '/imgs/peper.png',6, 4, 5004);
 
-insert into registration values (1, 6620, 8, true, true, false, true, null),
-				(2, 5200, 9, true, true, false, true, null),
-                                (3, 6620, 8, false, false, false, false, 'approve'),
-                                (4, 5520, 8, false, false, false, false, 'check semester hour'),
-                                (5, 5004, 11, false, false, false, false, 'approve'),
-                                (6, 5004, 11, false, false, false, false, 'approve'),
-                                (7, 6620, 8, true, false, false, true, null);
-                             
-insert into room values (1, 1, 1, 80),
-			(2, 2, 2, 100),
-                        (3, 3, 3, 90),
-                        (4, 4, 4, 120),
-                        (5, 5, 5, 100),
-                        (6, 6, 6, 100),
-                        (7, 7, 7, 80);
+insert into registration values (1, 6620, 8, false, false, false, false, true, null),
+				(2, 5200, 9, false, false, false, false, true, null),
+                                (3, 6620, 8, false, false, false, false, true, null),
+                                (4, 5520, 8, false, false, false, false, true, null),
+                                (5, 5004, 11, false, false, false, false, true, null),
+                                (6, 5004, 11, false, false, false, false, true, null),
+                                (7, 6620, 8, false, false, false, false, true, null),
+
 
 insert into student values (1, 'Lily', 'lily@northeastern.edu', '2000-10-17', 1, 12, 1, 43211000, 8, '/imgs/lily.png', 4.00, 4, '123456778'),
 			   (2, 'Gloria', 'gloria@northeastern.edu', '2000-11-06', 1, 12, 1, 43212000, 8, '/imgs/gloria.png', 3.75, 20, '123456778'),
@@ -96,3 +89,11 @@ insert into student values (1, 'Lily', 'lily@northeastern.edu', '2000-10-17', 1,
                            (8, 'Dede', 'dede@northeastern.edu', '1998-02-21', 5, 16, 5, 43215000, 12, '/imgs/dede.png', 2.80, 16, '123456778'),
                            (9, 'Pepper', 'pepper@northeastern.edu', '1998-02-21', 6, 17, 6, 43215000, 13, '/imgs/pepper.png', 2.30, 20, '123456778'),
                            (10, 'Manny', 'manny@northeastern.edu', '1998-02-21', 7, 18, 7, 43215000, 14, '/imgs/manny.png', 3.60, 10, '123456778');
+
+insert into room values (1, 1, 1, 80),
+                        (2, 2, 2, 100),
+                        (3, 3, 3, 90),
+                        (4, 4, 4, 120),
+                        (5, 5, 5, 100),
+                        (6, 6, 6, 100),
+                        (7, 7, 7, 80);

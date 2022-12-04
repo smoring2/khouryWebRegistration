@@ -52,6 +52,6 @@ urlpatterns = [
     path('advisor/requests/<int:advisor_id>', advisor_views.getAdvisorRequests, name = 'advisor_requests'),
     path('advisor/search/<int:advisor_id>', advisor_views.getAdvisorSearch, name = 'advisor_search'),
     path('advisor/search/details', advisor_views.getSearchDetails, name='search_details'),
-    path('advisor/my_students', advisor_views.getMyStudentsList, name='advisor_students'),
+    path('advisor/my_students/<int:advisor_id>', advisor_views.getMyStudentsList, name='advisor_students'),
     path('', include('studentInfo.urls')),
 ]
