@@ -45,14 +45,9 @@
                 <h4 class="border border-primary rounded p-2">Course list</h4>
                 {% for c in data.course_list %}
                 <p>{{c}}</p>
+                    <hr style="width:50%;text-align:left;margin-left:0">
                 {% endfor %}
 
-            </div>
-            <div class="bg-light rounded m-2">
-                <h4 class="border border-primary rounded p-2">Pending for approval</h4>
-                {% for c in data.pending_list %}
-                <p>{{c}}</p>
-                {% endfor %}
             </div>
             <div class="input-group">
                 <form action="" method="POST"> {%  csrf_token %}

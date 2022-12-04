@@ -30,6 +30,28 @@ class StudentRegistration(DetailView):
     template_name = 'student/course_registration.html'
     model = Student
 
+def getStudentNotification(request, student_id):
+    res = {
+        'student_id': int(student_id),
+        'pending_list': [],
+    }
+
+    student_id = {'student_id': int(student_id)}
+    cursor.execute('''SELECT course_id FROM registration WHERE status = 'pending' AND nuid = %(student_id)s''',
+                   student_id)
+    pending_list = cursor.fetchall()
+    if pending_list:
+        for r in pending_list:
+            if r[0] in res['pending_list']:
+                continue
+            res['pending_list'].append(str(r[0]) + "            " + getNameByCourseNum(r[0]))
+
+    context = {
+        "data": res
+    }
+
+    return render(request, 'student/student_notification.html', context)
+
 def dropCourse(request, student_id):
     if request.method == 'POST':
         nuid = int(request.POST['s_nuid'])
@@ -112,15 +134,18 @@ def getRegistrationInfo(request, student_id):
         # num_regis = {'course_num': course_id}
         # cursor.execute('''SELECT registered_num_of_stud FROM course WHERE course_id = %(course_num)s''', num_regis)
         # num_regis = 10
-        # Invalid cases:
-        if nuid in all_registration_info[0] and course_id in all_registration_info[1] and advisor_id in all_registration_info[2]:
-            return HttpResponse('Error, you cannot submit the same form.')
-        elif nuid != student_id:
+
+        # Invalid case 1: Student has submitted course registration form or has taken previously.
+        for i in range(len(all_registration_info[0])):
+            if nuid == all_registration_info[i][0] and course_id == all_registration_info[i][1]:
+                return HttpResponse('Error, you cannot submit the same form.')
+        # Invalid case 2: The nuid student input is not his/ her own.
+        if nuid != student_id:
             return HttpResponse('You cannot help others to register courses.')
-        # elif advisor_id not in advisor_list:
-        #    return HttpResponse('Please re-enter your advisor id.')
+        elif not isValidAdvisorId(advisor_list, advisor_id):
+            return HttpResponse('Please re-enter your advisor id.')
         else:
-            Registration.objects.create(nuid = nuid, course_id = course_id, advisor_id = advisor_id, status = 'pending')
+            Registration.objects.create(nuid = nuid, course_id = course_id, advisor_id = advisor_id, grade = None, status = 'pending')
 
     nuid = int(student_id)
     res = {
@@ -150,17 +175,22 @@ def getRegistrationInfo(request, student_id):
         for r in results:
             res['complete_courses'].append(r[0])
 
-
-    cursor.execute('''SELECT course_id FROM registration WHERE status = 'pending' AND nuid = %(student_id)s''', student_id)
-    pending_list = cursor.fetchall()
-    if pending_list:
-        for r in pending_list:
-            if r[0] in res['pending_list']:
-                continue
-            res['pending_list'].append(r[0])
-
     context = {
         "data": res
     }
 
     return render(request, 'student/course_registration.html', context)
+
+# This method takes two variable, arr stands for a fetched two dimensional array,
+# check if the emplpoyee_id is a valid or not.
+def isValidAdvisorId(arr, employee_id):
+    for i in range(len(arr)):
+        if employee_id == arr[i][0]:
+            return True
+
+    return False
+
+def getNameByCourseNum(course_id):
+    course_id = {'course_id': course_id}
+    cursor.execute('''SELECT course_name FROM course WHERE course_id = %(course_id)s''', course_id)
+    return cursor.fetchall()[0][0]

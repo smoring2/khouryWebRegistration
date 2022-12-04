@@ -224,11 +224,9 @@ class Registration(models.Model):
     nuid = models.IntegerField(primary_key=True)
     course = models.ForeignKey(Course, models.DO_NOTHING)
     advisor_id = models.IntegerField()
-    approved = models.IntegerField(blank=True, null=True)
-    completed = models.IntegerField(blank=True, null=True)
-    failed = models.IntegerField(blank=True, null=True)
-    pending = models.IntegerField(blank=True, null=True)
-    todo = models.CharField(max_length=45, blank=True, null=True)
+    grade = models.DecimalField(max_digits=3, decimal_places=2)
+    status = models.CharField(max_length=10)
+
 
     class Meta:
         managed = False

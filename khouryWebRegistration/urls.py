@@ -31,6 +31,7 @@ urlpatterns = [
     path('student/degreeAudit/<int:student_id>', student_views.getDegreeAudit, name='degree_audit'),
     path('student/courseRegistration/<int:student_id>', student_views.getRegistrationInfo, name='course_registration'),
     path('student/dropCourse/<int:student_id>', student_views.dropCourse, name='course_drop'),
+    path('student/studentNotification/<int:student_id>', student_views.getStudentNotification, name='student_notification'),
 
     #admin
     path("admin/home/", admin_view.admin_home, name='admin_home'),
