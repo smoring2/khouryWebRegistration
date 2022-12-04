@@ -64,6 +64,7 @@ def add_student(request):
             bdate = student_form.cleaned_data.get('bdate')
             campusid = student_form.cleaned_data.get('campusid')
             collegeid = student_form.cleaned_data.get('collegeid')
+            print(collegeid)
             department = student_form.cleaned_data.get('department')
             phone = student_form.cleaned_data.get('phone')
             advisor = student_form.cleaned_data.get('advisor')
@@ -71,12 +72,14 @@ def add_student(request):
             fs = FileSystemStorage()
             filename = fs.save(photo.name, photo)
             photo_url = fs.url(filename)
+            print(photo_url)
             grade = student_form.cleaned_data.get('grade')
             semesterhour = student_form.cleaned_data.get('semesterhour')
             password = student_form.cleaned_data.get('password')
             try:
-                user = Student.objects.create_user(nuid=nuid, name=name, 
+                user = Student.objects.create(nuid=nuid, name=name, 
                     email=email, bdate=bdate, campusid=campusid, collegeid=collegeid, department=department, phone=phone, advisor=advisor, photo=photo_url, grade=grade, semesterhour=semesterhour, password=password)
+                print(photo)
                 user.save()
                 messages.success(request, "Successfully Added")
                 return redirect(reverse('add_student'))
@@ -115,7 +118,7 @@ def add_course(request):
                 messages.success(request, "Successfully Added")
                 return redirect(reverse('add_course'))
             except:
-                messages.error(request, "Could Not Add")
+                messages.error(request, "Could Not Add course")
         else:
             messages.error(request, "Could Not Add")
     return render(request, 'admin_template/add_course_template.html', context)
@@ -158,13 +161,15 @@ def edit_advisor(request, employee_id):
     }
     if request.method == 'POST':
         if form.is_valid():
+            employee_id = form.cleaned_data.get('employee_id')
             name = form.cleaned_data.get('name')
             email = form.cleaned_data.get('email')
             phone = form.cleaned_data.get('phone')
             department = form.cleaned_data.get('department')
             password = form.cleaned_data.get('password') or None
             try:
-                user = Advisor.objects.get(id=advisor.id)
+                user = Advisor.objects.get(employee_id=advisor.employee_id)
+                user.employee_id = employee_id
                 user.name = name
                 user.email = email
                 user.phone = phone
@@ -193,7 +198,7 @@ def edit_student(request, nuid):
     }
     if request.method == 'POST':
         if form.is_valid():
-            #nuid = form.cleaned_data.get('nuid')
+            nuid = form.cleaned_data.get('nuid')
             name = form.cleaned_data.get('name')
             email = form.cleaned_data.get('email')
             bdate = form.cleaned_data.get('bdate')
@@ -208,6 +213,7 @@ def edit_student(request, nuid):
             password = form.cleaned_data.get('password')
             try:
                 user = Student.objects.get(nuid=student.nuid)
+                user.nuid = nuid
                 user.name = name
                 user.email = email
                 user.bdate = bdate
@@ -247,7 +253,7 @@ def edit_course(request, course_id):
     }
     if request.method == 'POST':
         if form.is_valid():
-            #course_id = form.cleaned_data.get('course_id')
+            course_id = form.cleaned_data.get('course_id')
             instructor = form.cleaned_data.get('instructor')
             meeting_time = form.cleaned_data.get('meeting_time')
             max_num_of_students = form.cleaned_data.get('max_num_of_students')
@@ -256,7 +262,7 @@ def edit_course(request, course_id):
             registered_num_of_stud = form.cleaned_data.get('registered_num_of_stud')
             try:
                 course = Course.objects.get(course_id=course_id)
-                #course.course_id = course_id
+                course.course_id = course_id
                 course.instructor = instructor
                 course.meeting_time = meeting_time
                 course.max_num_of_students = max_num_of_students

@@ -27,14 +27,14 @@
                         <h3 class="card-title">{{page_title}}</h3>
                     </div>
 
-                    <form method="post" action="/add_course" class="needs-validation" enctype="multipart/form-data" novalidate>
-                        <div class="row justify-content-md-center form-column">
+                    <form method="post" enctype="multipart/form-data">
+                        <div class="card-body">
                             
                             <div class="col col-md-9 col-12 form-add-course">
                                 <div class="form-row form-add-course">
                                     <div class="col-3 mb-3">
                                         <label class="form-label">Employee ID:  </label>
-                                        <input type="number" name="employeeid" class="form-control" required>
+                                        <input type="text" name="employee_id" class="form-control" required>
                                     </div>
                                 </div>
                             </div>
@@ -69,23 +69,15 @@
                                 <div class="form-row form-add-course">
                                     <div class="col-3 mb-3">
                                         <label class="form-label">Department:  </label>
-                                        <select name="department_name" class="filter-selectbox">
-                                        {% for advisor in advisors %}
-                                        <option value="{{ advisor.department.department_name }}">{{ advisor.department.department_name }}</option>
-                                        {% endfor %}
-                                        </select>
+                                        <input type="text" name="department" class="form-control" required>
                                     </div>
                                 </div>
                             </div>
                 
                             
+                            
                             {% csrf_token %}
-                            <div class="row justify-content-md-center col-12 text-center">
-                                <div class=" " style="margin-top: 20px;">
-                                    <button type="submit" class="btn text-light w-25 pe-4 ps-4"
-                                        style="background-color: rgb(78, 183, 181)">Add</button>
-                                </div>
-                            </div>
+                            <button type="submit" class="btn btn-primary mt-2">Add</button>
                         </div>
                     </form>
                 </div>

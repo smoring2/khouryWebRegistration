@@ -21,8 +21,8 @@
                                     <th>Name</th>
                                     <th>Email</th>
                                     <th>Birthday</th>
-                                    <th>Campus ID</th>
-                                    <th>College ID</th>
+                                    <th>Campus</th>
+                                    <th>College</th>
                                     <th>Department</th>
                                     <th>Phone #</th>
                                     <th>Advisor</th>
@@ -39,11 +39,11 @@
                                     <td>{{student.name}}</td>
                                     <td>{{student.email}}</td>
                                     <td>{{student.bdate}}</td>
-                                    <td>{{student.campusid}}</td>
-                                    <td>{{student.collageid}}</td>
+                                    <td>{{student.campusid.campus_name}}</td>
+                                    <td>{{student.collegeid.name}}</td>
                                     <td>{{student.department.department_name}}</td>
                                     <td>{{student.phone}}</td>
-                                    <td>{{student.advisor}}</td>
+                                    <td>{{student.advisor.name}}</td>
                                     <td>
                                         {% if student.photo == ""  %}
                                         No Image

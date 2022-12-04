@@ -13,7 +13,58 @@
                     <div class="card-header">
                         <h3 class="card-title">{{page_title}}</h3>
                     </div>
-                    {% include "admin_template/standard_form.html" with messages=messages  form=form button_text="Update Advisor"%}
+                    <form method="POST" enctype="multipart/form-data">
+                        <div class="card-body">
+                            
+                            <div class="col col-md-9 col-12 form-add-course">
+                                <div class="form-row form-add-course">
+                                    <div class="col-3 mb-3">
+                                        <label class="form-label">Employee ID:  </label>
+                                        <input type="number" name="employee_id" class="form-control" required>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col col-md-9 col-12 form-add-course">
+                                <div class="form-row form-add-course">
+                                    <div class="col-3 mb-3">
+                                        <label class="form-label">Name:  </label>
+                                        <input type="text" name="name" class="form-control" required>
+                                    </div>
+                                </div>
+                            </div>
+                
+                            <div class="col col-md-9 col-12">
+                                <div class="form-row form-add-course">
+                                    <div class="col-3 mb-3">
+                                        <label class="form-label">Email:  </label>
+                                        <input type="text" name="email" class="form-control" required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col col-md-9 col-12">
+                                <div class="form-row form-add-course">
+                                    <div class="col-3 mb-3">
+                                        <label class="form-label">Phone:  </label>
+                                        <input type="text" name="phone" class="form-control" required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col col-md-9 col-12">
+                                <div class="form-row form-add-course">
+                                    <div class="col-3 mb-3">
+                                        <label class="form-label">Department:  </label>
+                                        <input type="text" name="department" class="form-control" required>
+                                    </div>
+                                </div>
+                            </div>
+                
+                            
+                            
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-primary mt-2">Update</button>
                 </div>
                 <!-- /.card -->
 

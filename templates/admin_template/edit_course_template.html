@@ -14,7 +14,92 @@
                         <h3 class="card-title">{{page_title}}</h3>
                     </div>
 
-                    {% include "admin_template/standard_form.html" with messages=messages  form=form button_text="Edit Course"%}
+                    <form method="post" enctype="multipart/form-data">
+                        <div class="card-body">
+                            
+                            <div class="col col-md-9 col-12 form-add-course">
+                                <div class="form-row form-add-course">
+                                    <div class="col-3 mb-3">
+                                        <label class="form-label">Course ID:  </label>
+                                        <input type="number" name="ecourse_id" class="form-control" required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col col-md-9 col-12">
+                                <div class="form-row form-add-course">
+                                    <div class="col-3 mb-3">
+                                        <label class="form-label">Instructor:  </label>
+                                        <input type="time" name="instructor" class="form-control" required>
+                                    </div>
+                                </div>
+                            </div>
+                
+                            <div class="col col-md-9 col-12">
+                                <div class="form-row form-add-course">
+                                    <div class="col-3 mb-3">
+                                        <label class="form-label">Meeting Time:  </label>
+                                        <input type="time" name="meeting_time" class="form-control" required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col col-md-9 col-12">
+                                <div class="form-row form-add-course">
+                                    <div class="col-3 mb-3">
+                                        <label class="form-label">Capacity:  </label>
+                                        <input type="text" name="max_num_of_students" class="form-control" required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col col-md-9 col-12">
+                                <div class="form-row form-add-course">
+                                    <div class="col-3 mb-3">
+                                        <label class="form-label">Semester:  </label>
+                                        <input type="text" name="semester" class="form-control" required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col col-md-9 col-12">
+                                <div class="form-row form-add-course">
+                                    <div class="col-3 mb-3">
+                                        <label class="form-label">Semester Hours:  </label>
+                                        <input type="text" name="semester_hrs" class="form-control" required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col col-md-9 col-12">
+                                <div class="form-row form-add-course">
+                                    <div class="col-3 mb-3">
+                                        <label class="form-label">Registered No. of Students:  </label>
+                                        <input type="text" name="registered_num_of_stud" class="form-control" required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col col-md-9 col-12">
+                                <div class="form-row form-add-course">
+                                    <div class="col-3 mb-3">
+                                        <label class="form-label">Department:  </label>
+                                        <select name="department_name" name="department_name">
+                                            <option value="computerscience">Computer Science</option>
+                                            <option value="informatics">Informatics</option>
+                                            <option value="datascience">Data Science</option>
+                                            <option value="dataanalytics">Data Analytics</option>
+                                            <option value="informationsystem">Information System</option>
+                                            <option value="quantitativefinance">Quantitative Finance</option>
+                                            <option value="softwereengineering">Softwere Engineering</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                
+                            <br>
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-primary mt-2">Update</button>
                 </div>
                 <!-- /.card -->
 

@@ -28,7 +28,120 @@
                         <h3 class="card-title">{{page_title}}</h3>
                     </div>
 
-                    {% include "admin_template/standard_form.html" with messages=messages  form=form button_text="Add Student"%}
+                    <form method="POST" enctype="multipart/form-data">
+                        <div class="card-body">
+                            
+                            <div class="form-group">
+                                <div class="form-row form-add-course">
+                                    <div class="col-3 mb-3">
+                                        <label class="form-label">Nuid:  </label>
+                                        <input type="number" name="nuid" class="form-control" required>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col col-md-9 col-12 form-add-course">
+                                <div class="form-row form-add-course">
+                                    <div class="col-3 mb-3">
+                                        <label class="form-label">Name:  </label>
+                                        <input type="text" name="name" class="form-control" required>
+                                    </div>
+                                </div>
+                            </div>
+                
+                            <div class="col col-md-9 col-12">
+                                <div class="form-row form-add-course">
+                                    <div class="col-3 mb-3">
+                                        <label class="form-label">Email:  </label>
+                                        <input type="text" name="email" class="form-control" required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col col-md-9 col-12">
+                                <div class="form-row form-add-course">
+                                    <div class="col-3 mb-3">
+                                        <label class="form-label">Birthday:  </label>
+                                        <input type="date" name="bdate" class="form-control" required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col col-md-9 col-12">
+                                <div class="form-row form-add-course">
+                                    <div class="col-3 mb-3">
+                                        <label class="form-label">Campus:  </label>
+                                        <input type="text" name="campusid" class="form-control" required>                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col col-md-9 col-12">
+                                <div class="form-row form-add-course">
+                                    <div class="col-3 mb-3">
+                                        <label class="form-label">College:  </label>
+                                        <input type="text" name="collegeid" class="form-control" required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col col-md-9 col-12">
+                                <div class="form-row form-add-course">
+                                    <div class="col-3 mb-3">
+                                        <label class="form-label">Department:  </label>
+                                        <input type="text" name="department" class="form-control" required>
+                                    </div>
+                                </div>
+                            </div>
+                
+                            <div class="col col-md-9 col-12">
+                                <div class="form-row form-add-course">
+                                    <div class="col-3 mb-3">
+                                        <label class="form-label">Phone:  </label>
+                                        <input type="text" name="phone" class="form-control" required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col col-md-9 col-12">
+                                <div class="form-row form-add-course">
+                                    <div class="col-3 mb-3">
+                                        <label class="form-label">Advisor:  </label>
+                                        <input type="text" name="advisor" class="form-control" required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col col-md-9 col-12">
+                                <div class="form-row form-add-course">
+                                    <div class="col-3 mb-3">
+                                        <label for="img">Select image:</label>
+                                        <input type="file" id="photo" name="photo" accept="image/*">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col col-md-9 col-12">
+                                <div class="form-row form-add-course">
+                                    <div class="col-3 mb-3">
+                                        <label class="form-label">Grade:  </label>
+                                        <input type="text" name="grade" class="form-control" required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col col-md-9 col-12">
+                                <div class="form-row form-add-course">
+                                    <div class="col-3 mb-3">
+                                        <label class="form-label">Semester Hour:  </label>
+                                        <input type="text" name="semesterhour" class="form-control" required>
+                                    </div>
+                                </div>
+                            </div>
+
+                        
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-primary mt-2">Add</button>
+                        </div>
+                    </form>
                 </div>
                 <!-- /.card -->
 
