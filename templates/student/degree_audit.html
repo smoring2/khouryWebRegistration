@@ -30,7 +30,7 @@
                    class="list-group-item active">View Profile</a>
                 <a href="{% url 'course_registration' student_id=data.student_id %}"
                    class="list-group-item active">Registration</a>
-                <a href="{% url 'student_profile' data.student_id %}"
+                <a href="{% url 'student_notification' data.student_id %}"
                    class="list-group-item active">View Notifications</a>
                 <a href="{% url 'course_drop' student_id=data.student_id %}"
                    class="list-group-item active">Drop Courses</a>
@@ -40,10 +40,22 @@
                    class="list-group-item active">Logout</a>
             </div>
         </div>
-                <div class="col-10">
+        <div class="col-10">
             <div class="bg-light rounded m-2">
-                <h4 class="border border-primary rounded p-2">Degree Audit</h4>
+                <h4 class="border border-primary rounded p-2">Complete Course</h4>
                 {% for c in data.completed_list %}
+                <p>{{c}}</p>
+                {% endfor %}
+                <h4 class="border border-primary rounded p-2">In Progress</h4>
+                {% for c in data.in_progress %}
+                <p>Course: {{c}}</p>
+                {% endfor %}
+            <hr style="height:2px;border-width:0;color:gray;background-color:gray">
+            {% for c in data.cumulative %}
+                <p>{{c}}</p>
+                {% endfor %}
+            <hr style="height:2px;border-width:0;color:gray;background-color:gray">
+            {% for c in data.overall_gpa %}
                 <p>{{c}}</p>
                 {% endfor %}
             </div>

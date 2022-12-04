@@ -30,7 +30,7 @@
                    class="list-group-item active">View Profile</a>
                 <a href="{% url 'course_registration' student_id=data.student_id %}"
                    class="list-group-item active">Registration</a>
-                <a href="{% url 'student_profile' data.student_id %}"
+                <a href="{% url 'student_notification' data.student_id %}"
                    class="list-group-item active">View Notifications</a>
                 <a href="{% url 'course_drop' student_id=data.student_id %}"
                    class="list-group-item active">Drop Courses</a>
@@ -45,7 +45,7 @@
                 <h4 class="border border-primary rounded p-2">Course list</h4>
                 {% for c in data.course_list %}
                 <p>{{c}}</p>
-                    <hr style="width:50%;text-align:left;margin-left:0">
+                    <hr style="height:2px;border-width:0;color:gray;background-color:gray">
                 {% endfor %}
 
             </div>
@@ -54,7 +54,6 @@
                     <h4 class="border border-primary rounded p-2">Course Registration</h4>
                     <input type="text" class="field" placeholder="NUID" name="s_nuid">
                     <input type="text" class="field" placeholder="Couese Number" name="course_number">
-                    <input type="text" class="field" placeholder="Advisor id" name="advisor_id">
                     <button type="submit" class="btn">Register</button>
                 </form>
             </div>
