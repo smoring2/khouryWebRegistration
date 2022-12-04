@@ -18,15 +18,19 @@ from django.urls import path, include
 from studentInfo import views
 from studentInfo import admin_view
 from studentInfo import advisor_views
+from studentInfo import student_views
 
 
 urlpatterns = [
     # path('admin/', admin.site.urls),
     #student
     path('', views.testmysql),
-    path('student/', views.StudentList.as_view(), name = 'student_list'),
-    path('student/<int:pk>', views.StudentDetails.as_view(), name = 'student_detail'),
-
+    path('student/', student_views.StudentList.as_view(), name='student_list'),
+    path('student/<int:pk>', student_views.StudentDetails.as_view(), name='student_profile'),
+    path('student/home/<int:pk>', student_views.StudentHome.as_view(), name='student_home'),
+    path('student/degreeAudit/<int:student_id>', student_views.getDegreeAudit, name='degree_audit'),
+    path('student/courseRegistration/<int:student_id>', student_views.getRegistrationInfo, name='course_registration'),
+    path('student/dropCourse/<int:student_id>', student_views.dropCourse, name='course_drop'),
 
     #admin
     path("admin/home/", admin_view.admin_home, name='admin_home'),
