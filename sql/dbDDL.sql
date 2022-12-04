@@ -53,8 +53,7 @@ Create table student(nuid int primary key, name varchar(50), email varchar(100),
                       foreign key (collegeid) references college(collegeid),
                       foreign key (department_id) references department(department_id));
 
-create table registration(nuid int, course_id int, advisor_id int, approved bool, rejected bool, completed bool, failed bool,
-                          pending bool, grade double,
+create table registration(nuid int, course_id int, advisor_id int, grade double, status varchar(10),
                           foreign key (course_id) references course(course_id),
                           foreign key (advisor_id) references advisor(employee_id),
                           foreign key (nuid) references student(nuid),
