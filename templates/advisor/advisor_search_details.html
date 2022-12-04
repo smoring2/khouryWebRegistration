@@ -1,7 +1,12 @@
 <!DOCTYPE html>
-<html>
-<title>Advisor Homepage</title>
+<html lang="en">
 <head>
+    {% load static %}
+    <script src="{% static 'advisor.js' %}"  type="text/javascript"></script>
+    <meta charset="UTF-8">
+    <title>Advisor</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
     <style>
         #topBlackBar {
             border-top: 50px solid #000;
@@ -10,16 +15,7 @@
 </head>
 <body>
 <div id="topBlackBar"/>
-</body>
-</html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Advisor</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet"
-          integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
-</head>
-<body>
+
 <div class="container">
     <div class="row mt-2">
         <div class="col-2">
@@ -27,11 +23,11 @@
             <div class="fw-bolder">ID: {{data.advisor_id}}</div>
             <div class="list-group">
                 <a href="{% url 'advisor_statics' advisor_id=data.advisor_id %}" class="list-group-item">Statistics</a>
-                <a href="{% url 'advisor_requests' advisor_id=data.advisor_id %}"
-                   class="list-group-item">Requests</a>
-                <a href="{% url 'advisor_profile' employee_id=data.advisor_id %}" class="list-group-item">Profile</a>
-                <a href="{% url 'advisor_search' advisor_id=data.advisor_id %}"
-                   class="list-group-item active">Search</a>
+                <a href="{% url 'advisor_requests' advisor_id=data.advisor_id %}" class="list-group-item">Requests</a>
+                <a href="{% url 'advisor_students' advisor_id=data.advisor_id %}" class="list-group-item">My
+                    Students</a>
+                <a href="{% url 'advisor_profile' employee_id=data.advisor_id %}" class="list-group-item">My Profile</a>
+                <a href="{% url 'advisor_search' advisor_id=data.advisor_id %}" class="list-group-item">Search</a>
             </div>
         </div>
         <div class="col-10">
@@ -40,41 +36,63 @@
                        aria-label="Search" aria-describedby="search-addon"/>
                 <button type="button" class="btn btn-outline-primary" onclick="setGetParameter()">search</button>
             </div>
-            <div class="m-2 p-2 bg-light rounded">
+            <div class="m-2 p-2 bg-light rounded mb-3">
                 <h4 class="border border-primary rounded p-2">Name: {{data.student_name}}</h4>
                 <p>NUID: {{data.nuid}}</p>
+                <p>Semester hour: {{data.student_hours}}</p>
+                <p>GPA: {{data.student_grade}}</p>
                 <p>Student email: {{data.student_email}}</p>
                 <p>Student campus: {{data.student_campus}}</p>
                 <p>Student college: {{data.student_college}}</p>
                 <p>Student department: {{data.student_department}}</p>
             </div>
-            <div class="bg-light rounded m-2">
+            <div class="bg-light rounded m-2 mb-3">
                 <h4 class="border border-primary rounded p-2">Courses waiting for approval</h4>
                 {% for c in data.pending_courses %}
                 <p>{{c.course_id}}  {{c.course_name}}</p>
                 {% endfor %}
+                <button class="btn btn-primary" onclick="approve({{data.nuid}}, {{data.advisor_id}} )">Approve</button>
+                <button class="btn btn-danger" onclick="reject({{data.nuid}}, {{data.advisor_id}} )">Reject</button>
             </div>
-            <div class="bg-light rounded m-2">
+            <div class="bg-light rounded m-2 mb-3">
                 <h4 class="border border-primary rounded p-2">Courses approved</h4>
+                <div class="row">
                 {% for c in data.approved_courses %}
-                <p>{{c.course_id}}  {{c.course_name}}</p>
+                <div class="col-6 pb-1">{{c.course_id}}  {{c.course_name}}</div>
+                    <div class="col-2 pb-1">
+                    <button class="btn btn-danger" onclick="removeOneApprovedCourse({{data.nuid}},{{c.course_id}},{{data.advisor_id}})">Delete</button>
+                    </div>
+                    <div class="col-4 pb-1">
+                        <div class="input-group">
+                            <input id="grade" class="form-control rounded" placeholder="Input final GPA here.."
+                                   aria-label="Search" aria-describedby="search-addon"/>
+                            <button type="button" class="btn btn-primary" onclick="updateGPA({{data.nuid}},{{c.course_id}},{{data.advisor_id}}, document.getElementById('grade').value)">Submit</button>
+                        </div>
+                    </div>
                 {% endfor %}
+                    </div>
+                <div class="input-group">
+                    <input id="added-course" class="form-control rounded" placeholder="Input the course id you want to add here.."
+                           aria-label="Search" aria-describedby="search-addon"/>
+                    <button type="button" class="btn btn-outline-primary" onclick="addOneApprovedCourse({{data.nuid}}, document.getElementById('added-course').value, {{data.advisor_id}})">Add another course</button>
+                </div>
             </div>
-            <div class="bg-light rounded m-2">
+            <div class="bg-light rounded m-2 mb-3">
                 <h4 class="border border-primary rounded p-2">Courses Completed</h4>
+                <div class="row">
                 {% for c in data.completed_courses %}
-                <p id="{{c}}">{{c.course_id}}  {{c.course_name}}</p>
+                    <div class="col-8">{{c.course_id}}  {{c.course_name}}</div>
+                    <div class="col-4 float-right">Grade {{c.course_gpa}}</div>
                 {% endfor %}
+                    </div>
             </div>
             <div class="bg-light rounded m-2">
                 <h4 class="border border-primary rounded p-2">Courses Failed</h4>
+                <div class="row">
                 {% for c in data.failed_courses %}
-                <p>{{c.course_id}}  {{c.course_name}}</p>
+                    <div class="col-8">{{c.course_id}}  {{c.course_name}}</div>
+                    <div class="col-4 float-right">Grade {{c.course_gpa}}</div>
                 {% endfor %}
-            </div>
-            <div>
-                <button class="btn btn-danger">Edit</button>
-                <button class="btn btn-primary">Save</button>
             </div>
         </div>
     </div>
