@@ -14,14 +14,14 @@
                         <h3 class="card-title">{{page_title}}</h3>
                     </div>
 
-                    <form method="post" action="/add_course" class="needs-validation" enctype="multipart/form-data" novalidate>
-                        <div class="row justify-content-md-center form-column">
+                    <form method="post" enctype="multipart/form-data">
+                        <div class="card-body">
                             
                             <div class="col col-md-9 col-12 form-add-course">
                                 <div class="form-row form-add-course">
                                     <div class="col-3 mb-3">
                                         <label class="form-label">Course ID:  </label>
-                                        <input type="number" name="ecourseid" class="form-control" required>
+                                        <input type="number" name="ecourse_id" class="form-control" required>
                                     </div>
                                 </div>
                             </div>
@@ -30,15 +30,7 @@
                                 <div class="form-row form-add-course">
                                     <div class="col-3 mb-3">
                                         <label class="form-label">Instructor:  </label>
-                                        <select name="department_name" name="department_name">
-                                            <option value="lee">Lee</option>
-                                            <option value="don">Don</option>
-                                            <option value="alex">Alex</option>
-                                            <option value="peggy">Peggy</option>
-                                            <option value="betty">Betty</option>
-                                            <option value="peter">Peter</option>
-                                            <option value="alicia">Alicia</option>
-                                        </select>
+                                        <input type="time" name="instructor" class="form-control" required>
                                     </div>
                                 </div>
                             </div>
@@ -47,7 +39,7 @@
                                 <div class="form-row form-add-course">
                                     <div class="col-3 mb-3">
                                         <label class="form-label">Meeting Time:  </label>
-                                        <input type="time" name="meetingtime" class="form-control" required>
+                                        <input type="time" name="meeting_time" class="form-control" required>
                                     </div>
                                 </div>
                             </div>
@@ -56,7 +48,7 @@
                                 <div class="form-row form-add-course">
                                     <div class="col-3 mb-3">
                                         <label class="form-label">Capacity:  </label>
-                                        <input type="text" name="capacity" class="form-control" required>
+                                        <input type="text" name="max_num_of_students" class="form-control" required>
                                     </div>
                                 </div>
                             </div>
@@ -74,7 +66,7 @@
                                 <div class="form-row form-add-course">
                                     <div class="col-3 mb-3">
                                         <label class="form-label">Semester Hours:  </label>
-                                        <input type="text" name="hours" class="form-control" required>
+                                        <input type="text" name="semester_hrs" class="form-control" required>
                                     </div>
                                 </div>
                             </div>
@@ -83,7 +75,7 @@
                                 <div class="form-row form-add-course">
                                     <div class="col-3 mb-3">
                                         <label class="form-label">Registered No. of Students:  </label>
-                                        <input type="text" name="capacity" class="form-control" required>
+                                        <input type="text" name="registered_num_of_stud" class="form-control" required>
                                     </div>
                                 </div>
                             </div>
@@ -107,9 +99,7 @@
                 
                             <br>
                             {% csrf_token %}
-                            <div class="d-flex justify-content-around pt-2">
-                                <button class="btn btn-primary">Update</button>
-                            </div>
+                            <button type="submit" class="btn btn-primary mt-2">Update</button>
                 </div>
                 <!-- /.card -->
 

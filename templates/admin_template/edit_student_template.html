@@ -13,14 +13,14 @@
                     <div class="card-header">
                         <h3 class="card-title">{{page_title}}</h3>
                     </div>
-                    <form method="post" action="/add_course" class="needs-validation" enctype="multipart/form-data" novalidate>
-                        <div class="row justify-content-md-center form-column">
+                    <form method="post" enctype="multipart/form-data">
+                        <div class="card-body">
                             
                             <div class="col col-md-9 col-12 form-add-course">
                                 <div class="form-row form-add-course">
                                     <div class="col-3 mb-3">
                                         <label class="form-label">Nuid:  </label>
-                                        <input type="number" name="employeeid" class="form-control" required>
+                                        <input type="number" name="nuid" class="form-control" required>
                                     </div>
                                 </div>
                             </div>
@@ -55,15 +55,7 @@
                                 <div class="form-row form-add-course">
                                     <div class="col-3 mb-3">
                                         <label class="form-label">Campus:  </label>
-                                        <select name="campus_name" name="campus_name">
-                                            <option value="siliconvalley">Silicon Valley</option>
-                                            <option value="seattle">Seattle</option>
-                                            <option value="boston">Boston</option>
-                                            <option value="charlotte">Charlotte</option>
-                                            <option value="sanfrancisco">San Francisco</option>
-                                            <option value="portland">Portland</option>
-                                            <option value="vancouver">Vancouver</option>
-                                        </select>
+                                        <input type="date" name="campusid" class="form-control" required>
                                     </div>
                                 </div>
                             </div>
@@ -72,15 +64,7 @@
                                 <div class="form-row form-add-course">
                                     <div class="col-3 mb-3">
                                         <label class="form-label">College:  </label>
-                                        <select name="college_name" name="college_name">
-                                            <option value="liberalartandsciences">Liberal art and sciences</option>
-                                            <option value="engineering">Engineering</option>
-                                            <option value="collegeofscience">College of Science</option>
-                                            <option value="damoremcKimschoolofbusiness">D’Amore-McKim School of Business</option>
-                                            <option value="science">Bouvé College of Health Sciences</option>
-                                            <option value="law">School of Law</option>
-                                            <option value="professional">College of Professional Studies</option>
-                                        </select>
+                                        <input type="date" name="collegeid" class="form-control" required>
                                     </div>
                                 </div>
                             </div>
@@ -89,15 +73,7 @@
                                 <div class="form-row form-add-course">
                                     <div class="col-3 mb-3">
                                         <label class="form-label">Department:  </label>
-                                        <select name="department_name" name="department_name">
-                                            <option value="computerscience">Computer Science</option>
-                                            <option value="informatics">Informatics</option>
-                                            <option value="datascience">Data Science</option>
-                                            <option value="dataanalytics">Data Analytics</option>
-                                            <option value="informationsystem">Information System</option>
-                                            <option value="quantitativefinance">Quantitative Finance</option>
-                                            <option value="softwereengineering">Softwere Engineering</option>
-                                        </select>
+                                        <input type="date" name="department" class="form-control" required>
                                     </div>
                                 </div>
                             </div>
@@ -115,15 +91,7 @@
                                 <div class="form-row form-add-course">
                                     <div class="col-3 mb-3">
                                         <label class="form-label">Advisor:  </label>
-                                        <select name="advisor_name" name="advisor_name">
-                                            <option value="anna">Anna</option>
-                                            <option value="cary">Cary</option>
-                                            <option value="diane">Diane</option>
-                                            <option value="will">Will</option>
-                                            <option value="zach">Zach</option>
-                                            <option value="eli">eli</option>
-                                            <option value="grace">Grace</option>
-                                        </select>
+                                        <input type="date" name="advisor" class="form-control" required>
                                     </div>
                                 </div>
                             </div>
@@ -132,7 +100,7 @@
                                 <div class="form-row form-add-course">
                                     <div class="col-3 mb-3">
                                         <label for="img">Select image:</label>
-                                        <input type="file" id="img" name="img" accept="image/*">
+                                        <input type="file" id="photo" name="photo" accept="image/*">
                                         <input type="submit">
                                     </div>
                                 </div>
@@ -142,7 +110,7 @@
                                 <div class="form-row form-add-course">
                                     <div class="col-3 mb-3">
                                         <label class="form-label">Grade:  </label>
-                                        <input type="text" name="phone" class="form-control" required>
+                                        <input type="text" name="grade" class="form-control" required>
                                     </div>
                                 </div>
                             </div>
@@ -151,16 +119,14 @@
                                 <div class="form-row form-add-course">
                                     <div class="col-3 mb-3">
                                         <label class="form-label">Semester Hour:  </label>
-                                        <input type="text" name="phone" class="form-control" required>
+                                        <input type="text" name="semesterhour" class="form-control" required>
                                     </div>
                                 </div>
                             </div>
 
                             <br>
                             {% csrf_token %}
-                            <div class="d-flex justify-content-around pt-2">
-                                <button class="btn btn-primary">Update</button>
-                            </div>
+                            <button type="submit" class="btn btn-primary mt-2">Update</button>
                 </div>
                 <!-- /.card -->
 

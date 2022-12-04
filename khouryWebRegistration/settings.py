@@ -88,27 +88,15 @@ pymysql.install_as_MySQLdb()
 
 # [START db_setup]
 
-if os.getenv('GAE_APPLICATION', None):
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.mysql', 
-            'NAME': 'project',
-            'HOST': '/cloudsql/db-group12-365720:us-central1:cs5200team12',
-            'USER': 'cs5200team12',
-            'PASSWORD': 'a12345678'
-        }
-    }
-else:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.mysql', 
-            'NAME': 'project',
-            'USER': 'cs5200team12',
-            'PASSWORD': 'a12345678',
-            'HOST': '34.70.34.212',
-            'PORT': '3306'
-        } 
-    }
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql', 
+        'NAME': 'project',
+        'HOST': '34.70.34.212',
+        'USER': 'cs5200team12',
+        'PASSWORD': 'a12345678'
+    } 
+}
 
 # [END db_setup]
 

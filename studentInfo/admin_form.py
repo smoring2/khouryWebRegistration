@@ -44,7 +44,7 @@ class CourseForm(forms.ModelForm):
     class Meta:
         model = Course
         fields = "__all__"
-        course_id = forms.IntegerField(required=True)
+        course_id = forms.IntegerField()
         instructor = forms.CharField(required=True)
         meeting_time = forms.TimeField(required=True)
         max_num_of_students = forms.IntegerField(required=True)
