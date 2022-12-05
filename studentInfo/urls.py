@@ -9,6 +9,9 @@ urlpatterns = [
     path('api/advisor/update_gpa', api_views.updateGPA),
     path('api/advisor/insert_student', api_views.insertStudent),
     path('api/advisor/update_hours', api_views.updateHours),
-    path('api/advisor/update_phone', api_views.updatePhone)
-
+    path('api/advisor/update_phone', api_views.updatePhone),
+    path('api/advisor/saveClassRoom', api_views.saveClassRoom),
+    path('api/advisor/buildings', api_views.getBuildingList),
+    path('api/advisor/rooms', api_views.getRoomList),
+    path('api/advisor/addTa', api_views.addTaForCourse)
 ]

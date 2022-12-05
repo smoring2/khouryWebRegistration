@@ -40,7 +40,7 @@ def rejectPendingRequest(request):
     try:
         cursor.execute(SQL_REGISTRATION_REJECTION, val)
     except:
-       message = "No permssion\n This is not your student! "
+       message = "No permssion\nThis is not your student! "
     cursor.close()
     return JsonResponse({"message": message}, safe=False)
 
@@ -57,8 +57,11 @@ def removeOneApprovedCourse(request):
     message = "succeed"
     try:
         cursor.execute(SQL_REGISTRATION_REMOVE, val)
+        counts = cursor.rowcount
+        if counts == 0:
+            message = "No permssion\nThis is not your student! "
     except:
-        message = "No permssion\n This is not your student! "
+        message = "No permssion\nThis is not your student! "
     cursor.close()
     return JsonResponse({'message': message}, safe=False)
 
@@ -88,7 +91,7 @@ def addOneApprovedCourse(request):
         else:
             cursor.execute(SQL_REGISTRATION_INSERT, val)
     except:
-        message = "No permssion\n This is not your student! "
+        message = "No permssion\nThis is not your student! "
     cursor.close()
     return JsonResponse({'message': message}, safe=False)
 
@@ -104,9 +107,7 @@ def updateGPA(request):
     grade = request.query_params.get('grade')
     cursor= connection.cursor()
     val = {'nuid': int(nuid), 'course_id': int(course_id), 'advisor_id': int(advisor_id), 'grade': float(grade)}
-    message = ""
-    print("first val: ")
-    print(val)
+    message = "succeed"
     try:
         cursor.execute(SQL_REGISTRATION_UPDATE_GPA, val)
         print(cursor.fetchall())
@@ -115,7 +116,10 @@ def updateGPA(request):
         curr_gpa = gpas[0][0]
         val = {'grade': float(curr_gpa), 'nuid' : int(nuid)}
         cursor.execute(SQL_STUDENT_GPA_UPDATE, val)
-        message = "succeed"
+        counts = cursor.rowcount
+        print(counts)
+        if counts ==  0:
+            message = "No permission\nThis is not your student! "
     except Exception as e:
         print(e)
         message = "No permssion\nThis is not your student! "
@@ -204,5 +208,108 @@ def updatePhone(request):
         print(e)
         message = 'something wrong! Please try again!'
     cursor.close()
+    return JsonResponse({'message': message}, safe=False)
+
+SQL_COURSE_ROOM = '''update course set campusid = %(campusid)s,
+building_id = %(building_id)s, room_id = %(room_id)s where course_id = %(course_id)s '''
+@api_view(['GET'])
+def saveClassRoom(request):
+    course_id = request.query_params.get('course_id')
+    campusid = request.query_params.get('campusid')
+    building_id = request.query_params.get('building_id')
+    room_id = request.query_params.get('room_id')
+    val = {'course_id': int(course_id), 'campusid': int(campusid), 'building_id': int(building_id), 'room_id': int(room_id)}
+    cursor = connection.cursor()
+    succeed = "Succeed"
+    failed = "Something wrong. Please try again!"
+    message = ''
+    try:
+        cursor.execute(SQL_COURSE_ROOM, val)
+        message = succeed
+    except Exception as e:
+        print(e)
+        message = failed
+    cursor.close()
+    return JsonResponse({'message': message}, safe=False)
+
+
+SQL_BUILDING_LIST = '''select * from building where campusid = %(campusid)s '''
+@api_view(['GET'])
+def getBuildingList(request):
+    campusid = request.query_params.get('campusid')
+    val = {'campusid': int(campusid)}
+    cursor = connection.cursor()
+    succeed = "Succeed"
+    failed = "Something wrong. Please try again!"
+    message = ''
+    buildings = {}
+    try:
+        cursor.execute(SQL_BUILDING_LIST, val)
+        message = succeed
+        buildings = cursor.fetchall()
+    except Exception as e:
+        print(e)
+        message = failed
+    cursor.close()
+    return JsonResponse({'message': message, 'buildings': buildings}, safe=False)
+
+SQL_ROOM_LIST = '''select * from room where campusid = %(campusid)s and building_id = %(building_id)s '''
+@api_view(['GET'])
+def getRoomList(request):
+    campusid = request.query_params.get('campusid')
+    building_id = request.query_params.get('building_id')
+    val = {'campusid': int(campusid), 'building_id': int(building_id)}
+    cursor = connection.cursor()
+    failed = "Something wrong. Please try again!"
+    message = ''
+    rooms = {}
+    try:
+        cursor.execute(SQL_ROOM_LIST, val)
+        message = succeed
+        rooms = cursor.fetchall()
+    except Exception as e:
+        print(e)
+        message = failed
+    cursor.close()
+    return JsonResponse({'message': message, 'rooms': rooms}, safe=False)
+
+SQL_STUDENT_INFO = '''select * from student where nuid = %(nuid)s '''
+SQL_TA_INSERT = '''insert into ta values (%(nuid)s, %(name)s, %(email)s, %(campusid)s, %(collegeid)s,
+%(department_id)s, %(phone)s, %(advisor)s, %(photo)s, %(grade)s, %(semester_hour)s, %(course_id)s) '''
+@api_view(['GET'])
+def addTaForCourse(request):
+    nuid = request.query_params.get('ta_nuid')
+    course_id = request.query_params.get('course_id')
+    val = {'nuid': int(nuid)}
+    cursor = connection.cursor()
+    cursor.execute(SQL_STUDENT_INFO, val)
+    student_info = cursor.fetchall()
+    val = {
+        'nuid': int(nuid),
+        'name': student_info[0][1],
+        'email': student_info[0][2],
+        'campusid': student_info[0][4],
+        'collegeid': student_info[0][5],
+        'department_id': student_info[0][6],
+        'phone': student_info[0][7],
+        'advisor': student_info[0][8],
+        'photo': student_info[0][9],
+        'grade': student_info[0][10],
+        'semester_hour': student_info[0][11],
+        'course_id': int(course_id)
+    }
+    message = ''
+    succeed = 'succeed'
+    failed = 'Something wrong. Please try again!'
+    try:
+        cursor.execute(SQL_TA_INSERT, val)
+        counts = cursor.rowcount
+        if counts > 0:
+            message = succeed
+        else :
+            message = failed
+    except  Exception as e:
+        print(e)
+        message = failed
     return JsonResponse({'message': message}, safe=False)
 

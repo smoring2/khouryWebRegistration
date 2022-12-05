@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+<title>Advisor Courses</title>
+<head>
+    <style>
+        #topBlackBar {
+            border-top: 50px solid #000;
+        }
+    </style>
+    <meta charset="UTF-8">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
+
+</head>
+
+<body>
+<div id="topBlackBar"/>
+
+<div class="container">
+    <div class="row mt-3">
+        <div class="col-2">
+            <div class="fw-bolder">Advisor: {{data.advisor_name}}</div>
+            <div class="fw-bolder">ID: {{data.advisor_id}}</div>
+            <div class="list-group">
+                <a href="{% url 'advisor_statics' advisor_id=data.advisor_id %}" class="list-group-item">Statistics</a>
+                <a href="{% url 'advisor_requests' advisor_id=data.advisor_id %}" class="list-group-item">Requests</a>
+                <a href="{% url 'advisor_students' advisor_id=data.advisor_id %}" class="list-group-item">Students</a>
+                <a href="{% url 'advisor_courses' advisor_id=data.advisor_id %}"
+                   class="list-group-item active">Courses</a>
+                <a href="{% url 'advisor_profile' employee_id=data.advisor_id %}" class="list-group-item">Profile</a>
+                <a href="{% url 'advisor_search' advisor_id=data.advisor_id %}" class="list-group-item">Search</a>
+            </div>
+        </div>
+        <div class="col-10">
+            <div class="input-group pb-2">
+                <input id="search-course-id" type="search" class="form-control rounded"
+                       placeholder="Search course with id here..."
+                       aria-label="Search" aria-describedby="search-addon"/>
+                <button type="button" class="btn btn-outline-primary" onclick="getCourseSearchDetail()">search</button>
+            </div>
+            <div class="mb-3">
+                <div class="bg-light rounded mb-3">
+                    <h3 class="border border-primary rounded pb-2">Course: {{c.1}}</h3>
+                    <p>Course id: {{data.course_id}}</p>
+                    <p>Course name: {{data.course_name}}</p>
+                    <p>Instructor: {{data.instructor_id}} {{data.instructor_name}}</p>
+                    <p>Meeting time: {{data.meeting_time}} </p>
+                    <p>Capacity: {{data.max_num_of_students}} students </p>
+                    <p>Already registered students: {{data.registered_num_of_stud}}</p>
+                    <p>Semester: {{data.semester}}</p>
+                    <p>Semester hours: {{data.semester_hrs}}</p>
+                </div>
+                <h4 class="rounded">Assign/Edit the course room</h4>
+                <lable for="c-campus">campus</lable>
+                <select id="c-campus" class="form-select">
+                    <option value="0">Choose the campus</option>
+                    <option value="1">1 Silicon Valley</option>
+                    <option value="2">2 Seattle</option>
+                    <option value="3">3 Boston</option>
+                    <option value="4">4 Charlotte</option>
+                    <option value="5">5 San Francisco</option>
+                    <option value="6">6 Portland</option>
+                    <option value="7">7 Vancouver</option>
+                </select>
+                <lable for="c-building">Building</lable>
+                <select id="c-building" class="form-select">
+                    <option value="1">Ell Hal</option>
+                    <option value="2">Fenway Center</option>
+                    <option value="3">Forsyth Building</option>
+                    <option value="4">Egan Research Center</option>
+                    <option value="5">Dockser Hall</option>
+                    <option value="6">Cullinane Hall</option>
+                    <option value="7">Cushing Hall</option>
+                </select>
+                <lable for="c-room">Room</lable>
+                <select id="c-room" class="form-select">
+                    <option selected>Choose the room</option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                    <option value="7">7</option>
+                </select>
+                <button class="btn btn-primary"
+                        onclick="saveRoom()">Save classroom
+                </button>
+                <h4 class="rounded">Add a TA</h4>
+                <div class="row">
+                    <div class="col-10">
+                        <input type="text" id="ta-nuid" placeholder="Input ta nuid here.." class="form-control"></input>
+                    </div>
+                    <div class="col-2">
+                        <button class="btn btn-primary"
+                                onclick="addTaForCourse()">Add
+                        </button>
+                    </div>
+                </div>
+                <h4 class="rounded">TAs</h4>
+                {% for ta in data.tas %}
+                <div class="bg-light rounded">
+                <h4 class="border border-primary rounded p-2">Name: {{ta.1}}</h4>
+                <p>NUID: {{ta.0}}</p>
+                <p>Email: {{ta.2}}</p>
+                </div>
+                {% endfor %}
+            </div>
+
+        </div>
+    </div>
+</div>
+<script>
+    function getCourseSearchDetail() {
+        const course_id = document.getElementById("search-course-id").value;
+        window.location.href = "{% url 'search_course_details' %}" + "?advisor_id=" + {{data.advisor_id}}+"&course_id=" + course_id;
+    }
+
+    function saveRoom() {
+        console.log("save room")
+        const campusid = document.getElementById('c-campus').value;
+        const building_id = document.getElementById('c-building').value;
+        const room_id = document.getElementById('c-room').value;
+        const url = "/api/advisor/saveClassRoom?course_id=" + {{data.course_id}} +"&campusid=" + campusid
+        + "&building_id=" + building_id + "&room_id=" + room_id;
+        console.log(url)
+        fetch(url).then(function (response) {
+            return response.json();
+        }).then(function (data) {
+            alert(data.message)
+            location.reload()
+        }).catch(function () {
+            console.log("error");
+        });
+    }
+
+    var campus_dd = document.getElementById("c-campus");
+    var building_dd = document.getElementById('c-building')
+    var room_dd = document.getElementById('c-room')
+    var campusAssigned = false;
+    for (var i = 0; i < campus_dd.options.length; i++) {
+        if (campus_dd.options[i].value == {{data.campusid}}) {
+            campus_dd.options[i].selected = true;
+            campusAssigned = true
+            break;
+        }
+    }
+    if (!campusAssigned) {
+        campus_dd.options[0].select = true;
+    }
+
+    var buildingsAssigned = false;
+    for (var i = 0; i < building_dd.options.length; i++) {
+        if (building_dd.options[i].value == {{data.building_id}}) {
+            building_dd.options[i].selected = true;
+            buildingsAssigned = true
+            break;
+        }
+    }
+    if (!buildingsAssigned) {
+        building_dd.options[0].select = true;
+    }
+
+    var roomAssigned = false;
+    for (var i = 0; i < room_dd.options.length; i++) {
+        if (room_dd.options[i].value == {{data.room_id}}) {
+            room_dd.options[i].selected = true;
+            roomAssigned = true
+            break;
+        }
+    }
+    if (!roomAssigned) {
+        room_dd.options[0].select = true;
+    }
+
+    function addTaForCourse() {
+        const course_id = {{data.course_id}}
+        const ta_nuid = document.getElementById('ta-nuid').value;
+        const url = '/api/advisor/addTa?ta_nuid=' + ta_nuid + "&course_id=" + course_id
+        fetch(url).then(function (response) {
+            return response.json();
+        }).then(function (data) {
+            alert(data.message)
+            location.reload()
+        }).catch(function () {
+            console.log("error");
+        });
+    }
+
+</script>
+</body>
+</html>

@@ -28,11 +28,6 @@
           integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
 
 </head>
-<style>
-    .chart-container {
-        max-width: 500px;
-    }
-</style>
 
 <body>
 <div class="container">
@@ -43,7 +38,8 @@
             <div class="list-group">
                 <a href="{% url 'advisor_statics' advisor_id=stuInfos.advisor_id %}" class="list-group-item active">Statistics</a>
                 <a href="{% url 'advisor_requests' advisor_id=stuInfos.advisor_id %}" class="list-group-item">Requests</a>
-                <a href="{% url 'advisor_students' advisor_id=stuInfos.advisor_id %}" class="list-group-item">My Students</a>
+                <a href="{% url 'advisor_students' advisor_id=stuInfos.advisor_id %}" class="list-group-item">Students</a>
+                <a href="{% url 'advisor_courses' advisor_id=stuInfos.advisor_id %}" class="list-group-item">Courses</a>
                 <a href="{% url 'advisor_profile' employee_id=stuInfos.advisor_id %}" class="list-group-item">Profile</a>
                 <a href="{% url 'advisor_search' advisor_id=stuInfos.advisor_id %}" class="list-group-item">Search</a>
             </div>
@@ -56,7 +52,12 @@
             <h2>GPA Analysis</h2>
             <lable for="stu-avg-gpa">Average GPA</lable>
             <div id="stu-avg-gpa" class="form-control mb-2">{{stuInfos.avg_gpa}}</div>
-            <div class="card chart-container">
+            <lable for="stu-max-gpa">Max GPA</lable>
+            <div id="stu-max-gpa" class="form-control mb-2">{{stuInfos.max_gpa}}</div>
+            <lable for="stu-min-gpa">Min GPA</lable>
+            <div id="stu-min-gpa" class="form-control mb-2">{{stuInfos.min_gpa}}</div>
+            <h2>GPA Distribution</h2>
+            <div class="card">
                 <canvas id="chart-gpa"></canvas>
             </div>
 
@@ -71,9 +72,9 @@
     const myChart = new Chart(ctx, {
         type: 'bar',
         data: {
-            labels: ["GAP UNDER 3", "GAP 3.0-4.0", "GAP 4.0"],
+            labels: ["GPA UNDER 3", "GPA 3.0-4.0", "GPA 4.0"],
             datasets: [{
-                label: 'GAPs',
+                label: 'GPA',
                 backgroundColor: [
                     'rgba(255, 99, 132, 0.2)',
                     'rgba(54, 162, 235, 0.2)',

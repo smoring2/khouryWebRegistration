@@ -6,6 +6,8 @@ SQL_STUDENT_INFO = '''select * from student where nuid = %(nuid)s '''
 SQL_CAMPUS_INFO = '''Select * from campus where campusid = %(campusid)s'''
 SQL_DEPARTMENT_INFO = '''Select * from department where department_id = %(department_id)s'''
 SQL_COLLEGE_INFO = '''Select * from college where collegeid = %(collegeid)s'''
+SQL_COURSE_DETAIL = '''select * from course where course_id = %(course_id)s '''
+
 # cursor= connection.cursor()
 
 def getAdvisorInfoById(employee_id):
@@ -61,6 +63,15 @@ def getCollegeByCollegeid(colleageid):
     cursor.close()
     return college_info
 
+SQL_INSTRUCTOR_INFO = '''select * from instructor where employee_id = %(instructor_id)s '''
+def getInstructorByInstructorId(instructor_id):
+    cursor = connection.cursor()
+    val = {'instructor_id': int(instructor_id)}
+    cursor.execute(SQL_INSTRUCTOR_INFO, val)
+    instructor_info = cursor.fetchall()
+    cursor.close()
+    return instructor_info
+
 def getAdvisorProfile(request, employee_id):
     advisor_info = getAdvisorInfoById(employee_id)
     res = {}
@@ -69,7 +80,12 @@ def getAdvisorProfile(request, employee_id):
         res['name'] = advisor_info[0][1]
         res['email'] = advisor_info[0][2]
         res['phone'] = advisor_info[0][3]
-
+    department_id = advisor_info[0][4]
+    department_info = getDepartmentByDepartmentId(department_id)
+    if department_id:
+        res['department_id'] = department_info[0][0]
+        res['department_name'] = department_info[0][1]
+        res['office_addr'] = department_info[0][2]
     context = {
         "data": res
     }
@@ -77,6 +93,8 @@ def getAdvisorProfile(request, employee_id):
 
 SQL_ADVISOR_STU = '''SELECT * FROM student where advisor = %(employee_id)s'''
 SQL_ADVISOR_STU_AVG_GPA = '''SELECT AVG(grade) FROM student GROUP BY advisor having advisor = %(employee_id)s'''
+SQL_ADVISOR_STU_MAX_GPA = '''SELECT MAX(grade) FROM student GROUP BY advisor having advisor = %(employee_id)s'''
+SQL_ADVISOR_STU_MIN_GPA = '''SELECT MIN(grade) FROM student GROUP BY advisor having advisor = %(employee_id)s'''
 SQL_ADVISOR_STU_UNDER_3 = '''select * from student where advisor = %(employee_id)s and grade < 3'''
 SQL_ADVISOR_STU_GAP_FULL = '''select * from student where advisor = %(employee_id)s and grade >= 4'''
 SQL_ADVISOR_STU_GPA_BETWEEN = '''select * from student  where advisor = %(employee_id)s and grade >= 3 AND grade < 4'''
@@ -91,6 +109,10 @@ def getAdvisorStatistics(request, advisor_id):
     stu_info = cursor.fetchall()
     cursor.execute(SQL_ADVISOR_STU_AVG_GPA, val)
     stu_avg_gpa = cursor.fetchall()
+    cursor.execute(SQL_ADVISOR_STU_MAX_GPA, val)
+    stu_max_gpa = cursor.fetchall()
+    cursor.execute(SQL_ADVISOR_STU_MIN_GPA, val)
+    stu_min_gpa = cursor.fetchall()
     cursor.execute(SQL_ADVISOR_STU_UNDER_3, val)
     stu_gpa_under = cursor.fetchall()
     cursor.execute(SQL_ADVISOR_STU_GAP_FULL, val)
@@ -102,6 +124,8 @@ def getAdvisorStatistics(request, advisor_id):
         res['advisor_id'] = advisor_id
         res['numOfStus'] = len(stu_info)
         res['avg_gpa'] = stu_avg_gpa[0][0]
+        res['max_gpa'] = stu_max_gpa[0][0]
+        res['min_gpa'] = stu_min_gpa[0][0]
         res['numOfStusUnder'] = len(stu_gpa_under)
         res['numOfStusFull'] = len(stu_gpa_full)
         res['numOfStusBetween'] = len(stu_gpa_between)
@@ -156,7 +180,7 @@ def getStusPendingRegistration(pendingList):
         results.append(vals)
     return results
 
-def getAdvisorSearch(request, advisor_id):
+def getAdvisorStudentSearch(request, advisor_id):
     res = {}
     val = {'employee_id': int(advisor_id)}
     advisor_info = getAdvisorInfoById(advisor_id)
@@ -171,11 +195,13 @@ SQL_REGISTRATION_COMPLETED = '''select course_id, grade from registration where 
 SQL_REGISTRATION_PENDING = '''select course_id from registration where nuid = %(nuid)s and status = 'pending' '''
 SQL_REGISTRATION_FAILED = '''select course_id, grade from registration where nuid = %(nuid)s and status = 'failed' '''
 SQL_REGISTRATION_APPROVED = '''select course_id from registration where nuid = %(nuid)s and status = 'approved' '''
-def getSearchDetails(request):
-    nuid = request.GET.get('search')
+def getStudentSearchDetails(request):
+    nuid = request.GET.get('nuid')
     advisor_id = request.GET.get('advisor')
     advisor_info = getAdvisorInfoById(advisor_id)
     student_info = getStudentInfoByNuid(nuid)
+    stu_advisor_id = student_info[0][8]
+    stu_advisor_info = getAdvisorInfoById(stu_advisor_id)
     campus_info = getCampusByCampusId(student_info[0][4])
     college_info = getCollegeByCollegeid(student_info[0][5])
     department_info = getDepartmentByDepartmentId(student_info[0][6])
@@ -190,6 +216,8 @@ def getSearchDetails(request):
         'student_hours': student_info[0][11],
         'advisor_id': advisor_id,
         'advisor_name': advisor_info[0][1],
+        'stu_advisor_id': stu_advisor_id,
+        'stu_advisor_name': stu_advisor_info[0][1],
         'pending_courses': [],
         'approved_courses': [],
         'completed_courses': [],
@@ -252,6 +280,55 @@ def getMyStudentsList(request, advisor_id):
     }
     cursor.close()
     return render(request, 'advisor/advisor_students.html', context)
+
+def getAdvisorCourseSearch(request, advisor_id):
+    res = {}
+    advisor_info = getAdvisorInfoById(advisor_id)
+    res['advisor_name'] = advisor_info[0][1]
+    res['advisor_id'] = advisor_id
+    context = {
+        "data": res
+    }
+    return render(request, 'advisor/advisor_courses.html', context)
+
+SQL_COURSE_TAS = '''select * from ta where course_id = %(course_id)s '''
+def getCourseSearchDetails(request):
+     advisor_id = request.GET.get('advisor_id')
+     advisor_info = getAdvisorInfoById(advisor_id)
+     results = {
+        'advisor_id': advisor_id,
+        'advisor_name': advisor_info[0][1],
+     }
+     course_id = request.GET.get('course_id')
+     course_info = getCourseInfoByCourseId(course_id)
+     if course_info:
+        results['course_id'] = course_id
+        results['course_name'] = course_info[0][1]
+        results['instructor_id'] = course_info[0][2]
+        results['meeting_time'] = course_info[0][3]
+        results['max_num_of_students'] = course_info[0][4]
+        results['semester'] = course_info[0][5]
+        results['semester_hrs'] = course_info[0][6]
+        results['registered_num_of_stud'] = course_info[0][7]
+        results['department_id'] = course_info[0][8]
+        results['campusid'] = course_info[0][9]
+        results['building_id'] = course_info[0][10]
+        results['room_id'] = course_info[0][11]
+     instructor_id = course_info[0][2]
+     instructor_info = getInstructorByInstructorId(instructor_id)
+     results['instructor_name'] = instructor_info[0][3]
+
+     val = {'course_id': int(course_id)}
+     cursor = connection.cursor()
+     cursor.execute(SQL_COURSE_TAS, val)
+     tas = cursor.fetchall()
+     results['tas'] = tas
+     cursor.close()
+     context = {
+        'data': results
+     }
+     return render(request, 'advisor/advisor_course_details.html', context)
+
 
 
 

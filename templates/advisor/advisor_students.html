@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html>
-<title>Advisor Homepage</title>
+<title>Advisor Students</title>
 <head>
     {% load static %}
     <script src="{% static 'advisor.js' %}" type="text/javascript"></script>
@@ -27,13 +27,14 @@
             <div class="list-group">
                 <a href="{% url 'advisor_statics' advisor_id=data.advisor_id %}" class="list-group-item">Statistics</a>
                 <a href="{% url 'advisor_requests' advisor_id=data.advisor_id %}" class="list-group-item">Requests</a>
-                <a href="{% url 'advisor_students' advisor_id=data.advisor_id %}" class="list-group-item active">My Students</a>
-                <a href="{% url 'advisor_profile' employee_id=data.advisor_id %}" class="list-group-item">My Profile</a>
+                <a href="{% url 'advisor_students' advisor_id=data.advisor_id %}" class="list-group-item active">Students</a>
+                <a href="{% url 'advisor_courses' advisor_id=data.advisor_id %}" class="list-group-item">Courses</a>
+                <a href="{% url 'advisor_profile' employee_id=data.advisor_id %}" class="list-group-item">Profile</a>
                 <a href="{% url 'advisor_search' advisor_id=data.advisor_id %}" class="list-group-item">Search</a>
             </div>
         </div>
         <div class="col-10">
-            <h3>Add a new student</h3>
+            <h3>Register a new student</h3>
             <form>
                 <div class="form-group">
                     <label for="new-nuid">NUID</label>

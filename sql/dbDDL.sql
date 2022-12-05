@@ -37,8 +37,9 @@ create table advisor(employee_id int primary key, name varchar(45), email varcha
 create table admin(employee_id int primary key, name varchar(45), email varchar(100), phone int, department_id int, foreign key (department_id)
     references department(department_id), password varchar(20));
 
-create table ta(nuid int primary key, name varchar(45), email varchar(100), campusid int, collegeid int, department_id int,
+create table ta(nuid int, name varchar(45), email varchar(100), campusid int, collegeid int, department_id int,
                 phone int, advisor int(10), photo varchar(45), grade varchar(45), semester_hour varchar(45), course_id int,
+                primary key (nuid, course_id),
                 foreign key (advisor) references advisor(employee_id),
                 foreign key (campusid) references campus(campusid), foreign key (collegeid) references college(collegeid),
                 foreign key (department_id) references department(department_id));
