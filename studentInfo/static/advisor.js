@@ -66,7 +66,7 @@ function updateGPA(nuid, course_id, advisor_id, grade) {
 
 function insertNewStudent(advisor_id, nuid, name, bd, phone, campus, department, college, email, password) {
     const url = "/api/advisor/insert_student?nuid="
-    + nuid +"&name=" + name + "&email=" + name + "&bdate=" + bd + "&campus=" + campus
+    + nuid +"&name=" + name + "&email=" + email + "&bdate=" + bd + "&campus=" + campus
     + "&college=" + college + "&department=" + department  + "&phone=" + phone
     + "&advisor_id=" + advisor_id + "&password=" + password;
     fetch(url).then(function (response) {

@@ -186,6 +186,7 @@ def updateHours(request):
     except:
         message = 'something wrong! Please try again!'
     cursor.close()
+    print(message)
     return JsonResponse({'message': message}, safe=False)
 
 

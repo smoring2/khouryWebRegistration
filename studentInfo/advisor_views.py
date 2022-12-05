@@ -250,7 +250,6 @@ def getMyStudentsList(request, advisor_id):
     context = {
         "data": results
     }
-    print(results)
     cursor.close()
     return render(request, 'advisor/advisor_students.html', context)
 
