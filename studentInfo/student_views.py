@@ -12,9 +12,10 @@ def testmysql(request):
     }
     return render(request, 'studentInfo.html', context)
 
+
 # StudentList class should be deleted later on.
 class StudentList(ListView):
-    template_name= 'student/student_list.html'
+    template_name = 'student/student_list.html'
     model = Student
 
 
@@ -22,6 +23,8 @@ class StudentList(ListView):
 class StudentHome(DetailView):
     template_name = 'student/student_home.html'
     model = Student
+
+
 # Student main page after logging in.
 
 
@@ -67,7 +70,7 @@ def dropCourse(request, student_id):
 
             cursor.execute('''DELETE FROM registration WHERE nuid = %(nuid)s AND course_id = %(course_id)s ''',
                            {'nuid': nuid, 'course_id': course_id})
-            return HttpResponse('deleted')
+            return HttpResponse('Drop succeed')
 
     res = {
         'student_id': int(student_id),
@@ -90,36 +93,43 @@ def getDegreeAudit(request, student_id):
     cursor = connection.cursor()
     res = {
         'student_id': int(student_id),
-        'completed_list': [],
         'overall_gpa': [],
-        'cumulative': [],
-        'in_progress': getCourseInProgress(student_id),
+        'in_progress': [],
+        'complete_list': [],
+        'grade': [],
+        'cumulative_pts': [],
+        'cumulative_sh': [],
     }
 
+    # Build in progress print list.
+    for ea in getCourseInProgress(student_id):
+        res['in_progress'].append({'course_id': str(ea), 'course_name': getNameByCourseNum(ea), 'grade': 'IP'})
+
+    # Get course list that the student have completed.
     cursor.execute('''SELECT * FROM registration WHERE status = 'completed' ''')
     comp_list = cursor.fetchall()
 
-    grade_map = {4.00 : 'A', 3.66 : 'A-', 3.33: 'B+', 3: 'B', 2.66: 'B-', 2.33: 'C+', 2.00: 'C', 1.66: 'C-',
+    grade_map = {4.00: 'A', 3.66: 'A-', 3.33: 'B+', 3: 'B', 2.66: 'B-', 2.33: 'C+', 2.00: 'C', 1.66: 'C-',
                  1.33: 'D+', 1.00: 'D', 0: 'F'}
 
     cum_sh = 0
     cum_gpa = 0.0
 
-    if comp_list:
-        for comp in comp_list:
-            if comp[0] == int(student_id):
-                course_id = comp[1]
-                course_id = {'course_id': int(course_id)}
-                cursor.execute('''SELECT semester_hrs FROM course WHERE course_id = %(course_id)s''', course_id)
-                # Semester hours.
-                sh = cursor.fetchall()[0][0]
-                cum_sh += sh
-                cum_gpa += sh * min(4.0, comp[3])
-                str_builder = "Course: " + str(comp[1]) + "     " + grade_map[sh]
-                res['completed_list'].append(str_builder)
+    for comp in comp_list:
+        if comp[0] == int(student_id):
+            course_id = comp[1]
+            course_id = {'course_id': int(course_id)}
+            cursor.execute('''SELECT semester_hrs FROM course WHERE course_id = %(course_id)s''', course_id)
+            # Semester hours.
+            sh = cursor.fetchall()[0][0]
+            cum_sh += sh
+            cum_gpa += sh * min(4.0, comp[3])
+            res['complete_list'].append({'course_id': comp[1], 'grade': grade_map[comp[3]],
+                                        'course_name': getCourseNameByCourseNum(comp[1]),
+                                        'points_earned': sh * min(4.0, comp[3])})
 
-
-    res['cumulative'].append("Cumulative: " + str(cum_sh) + "      " + str(cum_gpa))
+    res['cumulative_sh'].append("Cumulative Semester Hours: " + str(cum_sh))
+    res['cumulative_pts'].append("Cumulative Points: " + str(cum_gpa))
     if cum_sh == 0:
         res['overall_gpa'].append("Overall GPA: " + str(0))
     else:
@@ -151,16 +161,18 @@ def getRegistrationInfo(request, student_id):
         for i in range(len(all_registration_info)):
             if nuid == all_registration_info[i][0] and course_id == all_registration_info[i][1]:
                 return HttpResponse('Error, you cannot submit the same form.')
+        if course_id not in getCourseNumList():
+            return HttpResponse(str(getCourseNumList()) + 'Course number you put is not in the course list, please input a correct course num.')
         # Invalid case 2: The nuid student input is not his/ her own.
-        if nuid != student_id:
+        elif nuid != student_id:
             return HttpResponse('You cannot help others to register courses.')
         elif not isValidAdvisorId(advisor_list, advisor_id):
             return HttpResponse('Please re-enter your advisor id.')
         elif isCourseFull(course_id):
             return HttpResponse('The course you registered for has reached the capacity')
         else:
-            Registration.objects.create(nuid = nuid, course_id = course_id, advisor_id = advisor_id, grade = None,
-                                        status = 'pending')
+            Registration.objects.create(nuid=nuid, course_id=course_id, advisor_id=advisor_id, grade=None,
+                                        status='pending')
             return HttpResponse("Registration succeed, please waiting the advisor for approval")
 
     nuid = int(student_id)
@@ -171,14 +183,12 @@ def getRegistrationInfo(request, student_id):
         'pending_list': [],
     }
 
-    cursor.execute('''SELECT * FROM course''')
-    course_list = cursor.fetchall()
-    if course_list:
-        for course_id in course_list:
-            string_builder = "Course Number: " + str(course_id[0]) + "   " + course_id[1] + \
-            "   Meeting time: " + str(course_id[2]) + "   Capacity: " + str(course_id[4]) + \
-                "   Registered: " + str(course_id[6])
-            res['course_list'].append(string_builder)
+    for course in getAllCourseInfo():
+        res['course_list'].append({'course_num': course[0], 'course_name': course[1],
+                                   'instructor': getInstructorNameById(course[2]), 'meeting_time': course[3],
+                                   'capacity': course[4], 'semester': course[5],
+                                   'semester_hrs': course[6],
+                                   'cur_registered': course[7]})
 
     res['complete_courses'] = getCompleteCoursesByNuid(nuid)
 
@@ -240,6 +250,94 @@ def getCompleteCoursesByNuid(student_id):
     return res
 
 
+# Student Table
+# Get student id list.
+def getStudentIdList():
+    cursor = connection.cursor()
+    cursor.execute('''SELECT nuid FROM student''')
+    res = cursor.fetchall()
+    cursor.close()
+
+    return res[0]
+
+
+# Given a student nuid, check if this nuid in student list.
+def isValidNuid(student_id):
+    cursor = connection.cursor()
+    cursor.execute('''SELECT nuid FROM student''')
+    cursor.close()
+
+    return student_id in cursor[0]
+
+
+# Given student id, calculate the cumulative GPA that student have so far.
+def calculateStudentGpa(student_id):
+    cursor = connection.cursor()
+    cursor.execute('''SELECT * FROM registration WHERE status = 'completed' ''')
+    comp_list = cursor.fetchall()
+
+    cum_sh = 0
+    cum_gpa = 0.0
+
+    if comp_list:
+        for comp in comp_list:
+            if comp[0] == int(student_id):
+                cursor.execute('''SELECT semester_hrs FROM course WHERE course_id = %(course_id)s''',
+                               {'course_id': comp[1]})
+                # Semester hours.
+                sh = cursor.fetchall()[0][0]
+                cum_sh += sh
+                cum_gpa += sh * min(4.0, comp[3])
+
+    if cum_sh == 0:
+        return 0
+    cursor.close()
+    return round(cum_gpa / cum_sh, 2)
+
+
+# The method takes student nuid as input,
+def updateStudentGpa(student_id):
+    cursor = connection.cursor()
+    gpa = calculateStudentGpa(student_id)
+    cursor.execute('''UPDATE student SET grade = %(gpa)s WHERE nuid = %(student_id)s ''',
+                   {'gpa': gpa, 'student_id': student_id})
+    cursor.close()
+
+
+# Update all students GOA in the student list.
+def updateAllStudentGpa():
+    for s in getStudentIdList():
+        updateStudentGpa(s)
+
+
+# Registration Table
+# This method takes student nuid as input, return a course number list that contain courses the student currently
+# taking or pending for advisor to approve.
+def getCourseCurrentlyTakingOrPending(student_id):
+    cursor = connection.cursor()
+    res = []
+    cursor.execute('''SELECT course_id FROM registration where nuid = %(student_id)s AND status != 'completed'
+    ''', {'student_id': student_id})
+    for c in cursor.fetchall():
+        res.append(c[0])
+    cursor.close()
+    return res
+
+
+# The method takes student nuid as input, return list that contain courses student currently taking.
+def getCourseInProgress(student_id):
+    cursor = connection.cursor()
+    cursor.execute('''SELECT course_id FROM registration WHERE nuid = %(student_id)s AND status = 'approved'
+    ''', {'student_id': student_id})
+    res = cursor.fetchall()
+    cursor.close()
+
+    if res:
+        return res[0]
+
+    return []
+
+
 # Input takes a student NUID, get all course numbers that the student submitted registration form and still pending
 # for advisor approval.
 def getPendingApprovals(student_id):
@@ -259,6 +357,8 @@ def getPendingApprovals(student_id):
     return res
 
 
+# Advisor Table
+# The method takes student nuid as input, return student's advisor id.
 def getAdvisorByStudentId(student_id):
     cursor = connection.cursor()
     student_id = {'student_id': student_id}
@@ -267,77 +367,62 @@ def getAdvisorByStudentId(student_id):
     return cursor.fetchall()[0][0]
 
 
+# Admin Table
+
+
+# Course Table
+# The method takes course id as input, return if the course has reached it's capacity.
 def isCourseFull(course_id):
     cursor = connection.cursor()
-    course_id = {'course_id': course_id}
-    cursor.execute('''SELECT max_num_of_students FROM course WHERE course_id = %(course_id)s''', course_id)
+    cursor.execute('''SELECT max_num_of_students FROM course WHERE course_id = %(course_id)s''',
+                   {'course_id': course_id})
     cap = cursor.fetchall()[0][0]
-    cursor.execute('''SELECT registered_num_of_stud FROM course WHERE course_id = %(course_id)s''', course_id)
+    cursor.execute('''SELECT registered_num_of_stud FROM course WHERE course_id = %(course_id)s''',
+                   {'course_id': course_id})
     cur_num = cursor.fetchall()[0][0]
     cursor.close()
     return cur_num >= cap
 
 
-def getCourseInProgress(student_id):
+# Course Table
+def getCourseNameByCourseNum(course_num):
     cursor = connection.cursor()
-    cursor.execute('''SELECT course_id FROM registration WHERE nuid = %(student_id)s AND status = 'approved'
-    ''', {'student_id': student_id})
+    cursor.execute('''SELECT course_name FROM course WHERE course_id = %(course_num)s''', {'course_num': course_num})
     res = cursor.fetchall()
     cursor.close()
 
-    if res:
-        return res[0]
+    return res[0][0]
 
-    return []
 
-def getCourseCurrentlyTakingOrPending(student_id):
+# Get all information from course table.
+def getAllCourseInfo():
     cursor = connection.cursor()
+    cursor.execute('''SELECT * FROM course''')
+    res = cursor.fetchall()
+    cursor.close()
+
+    return res
+
+# Get course number list.
+def getCourseNumList():
+    cursor = connection.cursor()
+    cursor.execute('''SELECT course_id FROM course''')
     res = []
-    cursor.execute('''SELECT course_id FROM registration where nuid = %(student_id)s AND status != 'completed'
-    ''', {'student_id': student_id})
+
     for c in cursor.fetchall():
         res.append(c[0])
     cursor.close()
+
     return res
 
-
-# Given a student nuid, check if this nuid in student list.
-def isValidNuid(student_id):
+# Instructor Table
+def getInstructorNameById(instructor_id):
     cursor = connection.cursor()
-    cursor.execute('''SELECT nuid FROM student''')
-    cursor.close()
+    cursor.execute('''SELECT name FROM instructor WHERE employee_id = %(employee_id)s ''',
+                   {'employee_id': instructor_id})
+    res = cursor.fetchall()
 
-    return student_id in cursor[0]
+    if res:
+        return res[0][0]
 
-# Given student id, calculate the cumulative GPA that student have so far.
-def calculateStudentGpa(student_id):
-    cursor = connection.cursor()
-    cursor.execute('''SELECT * FROM registration WHERE status = 'completed' ''')
-    comp_list = cursor.fetchall()
-
-    cum_sh = 0
-    cum_gpa = 0.0
-
-    if comp_list:
-        for comp in comp_list:
-            if comp[0] == int(student_id):
-
-                cursor.execute('''SELECT semester_hrs FROM course WHERE course_id = %(course_id)s''',
-                               {'course_id': comp[1]})
-                # Semester hours.
-                sh = cursor.fetchall()[0][0]
-                cum_sh += sh
-                cum_gpa += sh * min(4.0, comp[3])
-
-    if cum_sh == 0:
-        return 0
-    cursor.close()
-    return round(cum_gpa / cum_sh, 2)
-
-
-def updateStudentGpa(student_id):
-    cursor = connection.cursor()
-    gpa = calculateStudentGpa(student_id)
-    cursor.execute('''UPDATE student SET grade = %(gpa)s WHERE nuid = %(student_id)s ''',
-                   {'gpa' : gpa, 'student_id' : student_id})
-    cursor.close()
+    return ""

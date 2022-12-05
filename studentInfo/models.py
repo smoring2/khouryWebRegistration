@@ -136,6 +136,7 @@ class College(models.Model):
 
 class Course(models.Model):
     course_id = models.IntegerField(primary_key=True)
+    course_name = models.CharField(blank=True, null=True, max_length=100)
     instructor = models.ForeignKey('Instructor', models.DO_NOTHING, blank=True, null=True)
     meeting_time = models.TimeField(blank=True, null=True)
     max_num_of_students = models.IntegerField(blank=True, null=True)

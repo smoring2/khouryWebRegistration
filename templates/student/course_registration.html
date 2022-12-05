@@ -43,14 +43,32 @@
         <div class="col-10">
             <div class="bg-light rounded m-2">
                 <h4 class="border border-primary rounded p-2">Course list</h4>
+                <div class="row">
+                    <div class="col-md-2"><b> Course </b></div>
+                    <div class="col-md-4"><b> Name </b></div>
+                    <div class="col-md-1"><b> Instructor </b></div>
+                    <div class="col-md-1"><b> Time </b></div>
+                    <div class="col-md-1"><b> Capacity </b></div>
+                    <div class="col-md-1"><b> Registered </b></div>
+                    <div class="col-md-1"><b> s.h. </b></div>
+                </div>
+                <hr style="height:2px;border-width:0;color:gray;background-color:gray">
                 {% for c in data.course_list %}
-                <p>{{c}}</p>
+                    <div class="row">
+                        <div class="col-md-2">{{ c.course_num }}</div>
+                        <div class="col-md-4">{{ c.course_name }}</div>
+                        <div class="col-md-1">{{ c.instructor }}</div>
+                        <div class="col-md-1">{{ c.meeting_time }}</div>
+                        <div class="col-md-1">{{ c.capacity }}</div>
+                        <div class="col-md-1">{{ c.cur_registered }}</div>
+                        <div class="col-md-1">{{ c.semester_hrs }}</div>
+                    </div>
                     <hr style="height:2px;border-width:0;color:gray;background-color:gray">
                 {% endfor %}
 
             </div>
             <div class="input-group">
-                <form action="" method="POST"> {%  csrf_token %}
+                <form action="" method="POST"> {% csrf_token %}
                     <h4 class="border border-primary rounded p-2">Course Registration</h4>
                     <input type="text" class="field" placeholder="Couese Number" name="course_number">
                     <button type="submit" class="btn">Register</button>
