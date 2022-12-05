@@ -13,5 +13,7 @@ urlpatterns = [
     path('api/advisor/saveClassRoom', api_views.saveClassRoom),
     path('api/advisor/buildings', api_views.getBuildingList),
     path('api/advisor/rooms', api_views.getRoomList),
-    path('api/advisor/addTa', api_views.addTaForCourse)
+    path('api/advisor/addTa', api_views.addTaForCourse),
+    path('api/advisor/removeTa', api_views.removeTaForCourse)
+
 ]

@@ -100,9 +100,10 @@
                 <h4 class="rounded">TAs</h4>
                 {% for ta in data.tas %}
                 <div class="bg-light rounded">
-                <h4 class="border border-primary rounded p-2">Name: {{ta.1}}</h4>
-                <p>NUID: {{ta.0}}</p>
-                <p>Email: {{ta.2}}</p>
+                    <h4 class="border border-primary rounded p-2">Name: {{ta.1}}</h4>
+                    <p id="curr-ta-nuid">NUID: {{ta.0}}</p>
+                    <p>Email: {{ta.2}}</p>
+                    <button class="btn btn-danger" onclick="removeTa({{ta.0}})">Remove</button>
                 </div>
                 {% endfor %}
             </div>
@@ -187,6 +188,18 @@
         });
     }
 
+    function removeTa(ta_nuid) {
+        const course_id = {{data.course_id}}
+        const url = '/api/advisor/removeTa?ta_nuid=' + ta_nuid + "&course_id=" + course_id
+        fetch(url).then(function (response) {
+            return response.json();
+        }).then(function (data) {
+            alert(data.message)
+            location.reload()
+        }).catch(function () {
+            console.log("error");
+        });
+    }
 </script>
 </body>
 </html>

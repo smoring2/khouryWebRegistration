@@ -313,3 +313,25 @@ def addTaForCourse(request):
         message = failed
     return JsonResponse({'message': message}, safe=False)
 
+SQL_TA_REMOVE = ''' delete from ta where nuid = %(nuid)s and course_id = %(course_id)s '''
+@api_view(['GET'])
+def removeTaForCourse(request):
+    nuid = request.query_params.get('ta_nuid')
+    course_id = request.query_params.get('course_id')
+    val = {'nuid': int(nuid), 'course_id': int(course_id)}
+    cursor = connection.cursor()
+    message = ''
+    succeed = 'Succeed'
+    failed = 'Something wrong. Please try again!'
+    try:
+        cursor.execute(SQL_TA_REMOVE, val)
+        counts = cursor.rowcount
+        if counts > 0:
+            message = succeed
+        else :
+            message = failed
+    except  Exception as e:
+        print(e)
+        message = failed
+    return JsonResponse({'message': message}, safe=False)
+
