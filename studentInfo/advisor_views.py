@@ -6,22 +6,26 @@ SQL_STUDENT_INFO = '''select * from student where nuid = %(nuid)s '''
 SQL_CAMPUS_INFO = '''Select * from campus where campusid = %(campusid)s'''
 SQL_DEPARTMENT_INFO = '''Select * from department where department_id = %(department_id)s'''
 SQL_COLLEGE_INFO = '''Select * from college where collegeid = %(collegeid)s'''
-cursor= connection.cursor()
+# cursor= connection.cursor()
 
 def getAdvisorInfoById(employee_id):
-#     cursor= connection.cursor()
+    cursor= connection.cursor()
     val = {'employee_id': int(employee_id)}
     cursor.execute(SQL_ADVISOR_INFO, val)
-    advisor_info = cursor.fetchall()
-#     cursor.close()
+    try:
+        advisor_info = cursor.fetchall()
+    except Exception as e:
+        print("error")
+        print(e)
+    cursor.close()
     return advisor_info
 
 def getCourseInfoByCourseId(course_id):
-    #     cursor= connection.cursor()
+    cursor= connection.cursor()
     val = {'course_id': int(course_id)}
     cursor.execute(SQL_COURSE_INFO, val)
     course_info = cursor.fetchall()
-    #     cursor.close()
+    cursor.close()
     return course_info
 
 
@@ -30,7 +34,7 @@ def getStudentInfoByNuid(nuid):
     val = {'nuid': int(nuid)}
     cursor.execute(SQL_STUDENT_INFO, val)
     student_info = cursor.fetchall()
-    #     cursor.close()
+    cursor.close()
     return student_info
 
 def getDepartmentByDepartmentId(department_id):
@@ -38,7 +42,7 @@ def getDepartmentByDepartmentId(department_id):
     val = {'department_id': int(department_id)}
     cursor.execute(SQL_DEPARTMENT_INFO, val)
     department_info = cursor.fetchall()
-    #     cursor.close()
+    cursor.close()
     return department_info
 
 def getCampusByCampusId(campusid):
@@ -46,7 +50,7 @@ def getCampusByCampusId(campusid):
     val = {'campusid': int(campusid)}
     cursor.execute(SQL_CAMPUS_INFO, val)
     campus_info = cursor.fetchall()
-    #     cursor.close()
+    cursor.close()
     return campus_info
 
 def getCollegeByCollegeid(colleageid):
@@ -54,7 +58,7 @@ def getCollegeByCollegeid(colleageid):
     val = {'collegeid': int(colleageid)}
     cursor.execute(SQL_COLLEGE_INFO, val)
     college_info = cursor.fetchall()
-    #     cursor.close()
+    cursor.close()
     return college_info
 
 def getAdvisorProfile(request, employee_id):
@@ -79,9 +83,9 @@ SQL_ADVISOR_STU_GPA_BETWEEN = '''select * from student  where advisor = %(employ
 
 def getAdvisorStatistics(request, advisor_id):
     res = {}
-    #     cursor= connection.cursor()
     advisor_info = getAdvisorInfoById(advisor_id)
     res['advisor_name'] = advisor_info[0][1]
+    cursor= connection.cursor()
     val = {'employee_id': int(advisor_id)}
     cursor.execute(SQL_ADVISOR_STU, val)
     stu_info = cursor.fetchall()
@@ -105,15 +109,15 @@ def getAdvisorStatistics(request, advisor_id):
     context = {
         "stuInfos": res
     }
-    #     cursor.close()
+    cursor.close()
     return render(request, 'advisor/advisor_index.html', context)
 
 SQL_REGISTRATIONS_STU_LIST = '''select nuid, course_id from registration where advisor_id = %(employee_id)s and status='pending' '''
 def getAdvisorRequests(request, advisor_id):
     results = {}
-    #     cursor= connection.cursor()
     advisor_info = getAdvisorInfoById(advisor_id)
     results['advisor_name'] = advisor_info[0][1]
+    cursor= connection.cursor()
     val = {'employee_id': int(advisor_id)}
     cursor.execute(SQL_REGISTRATIONS_STU_LIST, val)
     pendingList = cursor.fetchall()
@@ -125,7 +129,7 @@ def getAdvisorRequests(request, advisor_id):
     context = {
         "data" : results
     }
-    #     cursor.close()
+    cursor.close()
     return render(request, 'advisor/advisor_requests.html', context)
 
 def getStusPendingRegistration(pendingList):
@@ -191,7 +195,7 @@ def getSearchDetails(request):
         'completed_courses': [],
         'failed_courses': []
     }
-    #     cursor= connection.cursor()
+    cursor= connection.cursor()
     val = {'nuid': int(nuid)}
     cursor.execute(SQL_REGISTRATION_PENDING, val)
     results = cursor.fetchall()
@@ -228,12 +232,12 @@ def getSearchDetails(request):
     context = {
         "data": details
     }
-    #     cursor.close()
+    cursor.close()
     return render(request, 'advisor/advisor_search_details.html', context)
 
 SQL_ADVISOR_STUS_LIST = '''select * from student where advisor = %(advisor)s '''
 def getMyStudentsList(request, advisor_id):
-    #     cursor= connection.cursor()
+    cursor= connection.cursor()
     var = {'advisor': int(advisor_id)}
     cursor.execute(SQL_ADVISOR_STUS_LIST, var)
     students = cursor.fetchall()
@@ -247,7 +251,7 @@ def getMyStudentsList(request, advisor_id):
         "data": results
     }
     print(results)
-    #     cursor.close()
+    cursor.close()
     return render(request, 'advisor/advisor_students.html', context)
 
 

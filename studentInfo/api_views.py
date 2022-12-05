@@ -5,7 +5,6 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 
 from django.db import connection
-cursor= connection.cursor()
 
 SQL_REGISTRATION_APPROVAL = '''update registration set status = 'approved'
 where nuid = %(nuid)s and status = 'pending' and advisor_id = %(advisor_id)s '''
@@ -13,12 +12,14 @@ where nuid = %(nuid)s and status = 'pending' and advisor_id = %(advisor_id)s '''
 def approvePendingRequest(request):
     nuid = request.query_params.get('nuid')
     advisor_id = request.query_params.get('advisor_id')
+    cursor= connection.cursor()
     val = {'nuid': int(nuid), 'advisor_id': int(advisor_id)}
     message="succeed"
     try:
         cursor.execute(SQL_REGISTRATION_APPROVAL, val)
     except:
         message = "No permssion\n This is not your student! "
+    cursor.close()
     return JsonResponse({"message": message}, safe=False)
 
 SQL_REGISTRATION_REJECTION = '''update registration set status = 'rejected'
@@ -27,12 +28,14 @@ where nuid= %(nuid)s and advisor_id = %(advisor_id)s and ( status = 'pending' or
 def rejectPendingRequest(request):
     nuid = request.query_params.get('nuid')
     advisor_id = request.query_params.get('advisor_id')
+    cursor= connection.cursor()
     val = {'nuid': int(nuid), 'advisor_id': int(advisor_id)}
     message="succeed"
     try:
         cursor.execute(SQL_REGISTRATION_REJECTION, val)
     except:
        message = "No permssion\n This is not your student! "
+    cursor.close()
     return JsonResponse({"message": message}, safe=False)
 
 
@@ -44,11 +47,13 @@ def removeOneApprovedCourse(request):
     course_id = request.query_params.get('course_id')
     advisor_id = request.query_params.get('advisor_id')
     val = {'nuid': int(nuid), 'course_id': int(course_id), 'advisor_id': int(advisor_id)}
+    cursor= connection.cursor()
     message = "succeed"
     try:
         cursor.execute(SQL_REGISTRATION_REMOVE, val)
     except:
         message = "No permssion\n This is not your student! "
+    cursor.close()
     return JsonResponse({'message': message}, safe=False)
 
 SQL_REGISTRATION_INFO = '''select * from registration
@@ -62,6 +67,7 @@ def addOneApprovedCourse(request):
     nuid = request.query_params.get('nuid')
     course_id = request.query_params.get('course_id')
     advisor_id = request.query_params.get('advisor_id')
+    cursor= connection.cursor()
     val = {'nuid': int(nuid), 'course_id': int(course_id), 'advisor_id': int(advisor_id)}
     message = "succeed"
     try:
@@ -77,6 +83,7 @@ def addOneApprovedCourse(request):
             cursor.execute(SQL_REGISTRATION_INSERT, val)
     except:
         message = "No permssion\n This is not your student! "
+    cursor.close()
     return JsonResponse({'message': message}, safe=False)
 
 SQL_REGISTRATION_UPDATE_GPA = '''update registration set grade = %(grade)s where nuid= %(nuid)s and course_id = %(course_id)s and advisor_id = %(advisor_id)s '''
@@ -89,6 +96,7 @@ def updateGPA(request):
     course_id = request.query_params.get('course_id')
     advisor_id = request.query_params.get('advisor_id')
     grade = request.query_params.get('grade')
+    cursor= connection.cursor()
     val = {'nuid': int(nuid), 'course_id': int(course_id), 'advisor_id': int(advisor_id), 'grade': float(grade)}
     message = ""
     print("first val: ")
@@ -105,6 +113,7 @@ def updateGPA(request):
     except Exception as e:
         print(e)
         message = "No permssion\nThis is not your student! "
+    cursor.close()
     return JsonResponse({'message': message}, safe=False)
 
 
@@ -114,6 +123,7 @@ SQL_NUID_CHECK = '''select * from student where nuid = %(nuid)s '''
 def insertStudent(request):
     print(request.query_params)
     nuid = request.query_params.get('nuid')
+    cursor= connection.cursor()
     val = {'nuid': int(nuid)}
     cursor.execute(SQL_NUID_CHECK, val)
     print("test-mysql")
@@ -153,6 +163,7 @@ def insertStudent(request):
     except Exception as e:
         print(e)
         message = "Something wrong. Please try again"
+    cursor.close()
     return JsonResponse({'message': message, "succeed": succeed}, safe=False)
 
 SQL_STUDENT_UPDATE_HOURS = '''update student set semesterhour= %(hours)s where nuid = %(nuid)s '''
@@ -160,6 +171,7 @@ SQL_STUDENT_UPDATE_HOURS = '''update student set semesterhour= %(hours)s where n
 def updateHours(request):
     nuid = request.query_params.get('nuid')
     hours = request.query_params.get('hours')
+    cursor= connection.cursor()
     val = {'nuid': int(nuid), 'hours': int(hours)}
     message = ''
     try:
@@ -167,6 +179,7 @@ def updateHours(request):
         message = 'succeed!'
     except:
         message = 'something wrong! Please try again!'
+    cursor.close()
     return JsonResponse({'message': message}, safe=False)
 
 
@@ -175,6 +188,7 @@ SQL_ADVISOR_UPDATE_PHONE = '''update advisor set phone = %(phone)s where employe
 def updatePhone(request):
     advisor_id = request.query_params.get("advisor_id")
     phone = request.query_params.get('phone')
+    cursor= connection.cursor()
     val = {'advisor_id': int(advisor_id), 'phone': int(phone)}
     message = 'succeed'
     try:
@@ -182,5 +196,6 @@ def updatePhone(request):
     except Exception as e:
         print(e)
         message = 'something wrong! Please try again!'
+    cursor.close()
     return JsonResponse({'message': message}, safe=False)
 
