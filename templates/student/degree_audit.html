@@ -43,22 +43,58 @@
         <div class="col-10">
             <div class="bg-light rounded m-2">
                 <h4 class="border border-primary rounded p-2">Complete Course</h4>
-                {% for c in data.completed_list %}
-                <p>{{c}}</p>
-                {% endfor %}
-                <h4 class="border border-primary rounded p-2">In Progress</h4>
+                    <div class="row">
+                        <div class="col-md-3"><b>Course </b></div>
+                        <div class="col-md-3"><b>Name </b></div>
+                        <div class="col-md-3"><b>Pts </b></div>
+                        <div class="col-md-3"><b>Grade Letter</b></div>
+                    </div>
+             <hr style="height:2px;border-width:0;color:gray;background-color:gray">
+                {% for c in data.complete_list %}
+                    <div class="row">
+                        <div class="col-md-3"><font size="1">{{c.course_id}} </font></div>
+                        <div class="col-md-3"><font size="1">{{c.course_name}} </font></div>
+                        <div class="col-md-3"><font size="1">{{c.points_earned }}</font></div>
+                        <div class="col-md-3"><font size="1">{{c.grade}}</font></div>
+                    </div>
+                    {% endfor %}
+                    <h4 class="border border-primary rounded p-2">In Progress</h4>
+            </div>
+            <div class="bg-light rounded m-2">
+                    <div class="row">
+                        <div class="col-md-3"><b>Course </b></div>
+                        <div class="col-md-3"><b>Name </b></div>
+                        <div class="col-md-3"><b>Pts </b></div>
+                        <div class="col-md-3"><b>Grade Letter</b></div>
+                    </div>
+            <hr style="height:2px;border-width:0;color:gray;background-color:gray">
                 {% for c in data.in_progress %}
-                <p>Course: {{c}}</p>
-                {% endfor %}
-            <hr style="height:2px;border-width:0;color:gray;background-color:gray">
-            {% for c in data.cumulative %}
+                    <div class="row">
+                        <div class="col-md-3"><font size="1">{{c.course_id}} </font></div>
+                        <div class="col-md-6"><font size="1">{{c.course_name}} </font></div>
+                        <div class="col-md-3"><font size="1">{{c.grade}} </font></div>
+                    </div>
+                    {% endfor %}
+                    <h4 class="border border-primary rounded p-2">Summary</h4>
+            </div>
+            <div class="bg-light rounded m-2">
+                {% for c in data.cumulative_sh %}
                 <p>{{c}}</p>
                 {% endfor %}
-            <hr style="height:2px;border-width:0;color:gray;background-color:gray">
-            {% for c in data.overall_gpa %}
+                <hr style="height:2px;border-width:0;color:gray;background-color:gray">
+            </div>
+            <div class="bg-light rounded m-2">
+                {% for c in data.cumulative_pts %}
+                <p>{{c}}</p>
+                {% endfor %}
+                <hr style="height:2px;border-width:0;color:gray;background-color:gray">
+            </div>
+            <div class="bg-light rounded m-2">
+                {% for c in data.overall_gpa %}
                 <p>{{c}}</p>
                 {% endfor %}
             </div>
+        </div>
 
     </div>
 </div>
