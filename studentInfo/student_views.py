@@ -3,7 +3,7 @@ from .models import Student, Registration
 from django.views.generic import ListView, DetailView
 from django.db import connection
 from django.http import HttpResponse
-cursor= connection.cursor()
+cursor = connection.cursor()
 
 
 def testmysql(request):
@@ -39,6 +39,8 @@ def getStudentNotification(request, student_id):
 
     for r in getPendingApprovals(student_id):
         res['pending_list'].append(str(r) + "            " + getNameByCourseNum(r))
+    if len(res['pending_list']) == 0:
+        res['pending_list'] = ['No courses']
 
     context = {
         "data": res
@@ -48,26 +50,33 @@ def getStudentNotification(request, student_id):
 
 
 def dropCourse(request, student_id):
+    course_currently_taking = getCourseCurrentlyTaking(student_id)
     if request.method == 'POST':
-        nuid = int(request.POST['s_nuid'])
+        nuid = student_id
         course_id = int(request.POST['course_number'])
         advisor_id = getAdvisorByStudentId(student_id)
 
         cursor.execute('''SELECT * from registration''')
         all_registration_info = cursor.fetchall()
 
-        if nuid in all_registration_info[0] and course_id in all_registration_info[1] and advisor_id in all_registration_info[2]:
-            return HttpResponse('Error, you cannot submit the same form.')
+        if course_id not in course_currently_taking:
+            return HttpResponse('You cannot drop this course')
         elif nuid != student_id:
             return HttpResponse('Please correct your niud.')
         else:
-            drop_course = Registration.objects.get(course=course_id, nuid=nuid)
-            drop_course.delete()
+
+            cursor.execute('''DELETE FROM registration WHERE nuid = %(nuid)s AND course_id = %(course_id)s ''',
+                           {'nuid': nuid, 'course_id': course_id})
             return HttpResponse('deleted')
 
     res = {
         'student_id': int(student_id),
+        'course_taking': [],
     }
+
+    for course in range(len(course_currently_taking)):
+        res['course_taking'].append(str(course_currently_taking[course]) + ':     ' +
+                                    getNameByCourseNum(course_currently_taking[course]))
 
     context = {
         "data": res
@@ -124,7 +133,7 @@ def getDegreeAudit(request, student_id):
 def getRegistrationInfo(request, student_id):
     # Submit course registration form.
     if request.method == 'POST':
-        nuid = int(request.POST['s_nuid'])
+        nuid = student_id
         course_id = int(request.POST['course_number'])
         advisor_id = getAdvisorByStudentId(student_id)
 
@@ -134,7 +143,7 @@ def getRegistrationInfo(request, student_id):
         advisor_list = cursor.fetchall()
 
         # Invalid case 1: Student has submitted course registration form or has taken previously.
-        for i in range(len(all_registration_info[0])):
+        for i in range(len(all_registration_info)):
             if nuid == all_registration_info[i][0] and course_id == all_registration_info[i][1]:
                 return HttpResponse('Error, you cannot submit the same form.')
         # Invalid case 2: The nuid student input is not his/ her own.
@@ -162,7 +171,8 @@ def getRegistrationInfo(request, student_id):
     if course_list:
         for course_id in course_list:
             employee_id = {'employee_id': course_id[1]}
-            cursor.execute('''SELECT name FROM instructor WHERE employee_id = %(employee_id)s''', employee_id)
+            cursor.execute('''SELECT name FROM instructor WHERE employee_id = %(employee_id)s AND status = 'approved'
+            ''', employee_id)
 
             string_builder = "Course Number: " + str(course_id[0]) + "   " + course_id[1] + \
             "   Meeting time: " + str(course_id[2]) + "   Capacity: " + str(course_id[4]) + \
@@ -254,13 +264,14 @@ def isCourseFull(course_id):
 
 
 def getCourseInProgress(student_id):
-    res = []
     student_id = {'student_id': student_id}
     cursor.execute('''SELECT course_id FROM registration WHERE nuid = %(student_id)s AND status = 'approved'
     ''', student_id)
-    l = cursor.fetchall()
-    for course in l:
-        res.append(course)
-    if len(l) == 0:
-        return []
-    return l[0]
+    return cursor.fetchall()
+
+def getCourseCurrentlyTaking(student_id):
+    res = []
+    cursor.execute('''SELECT course_id FROM registration where nuid = %(student_id)s''', {'student_id': student_id})
+    for c in cursor.fetchall():
+        res.append(c[0])
+    return res
