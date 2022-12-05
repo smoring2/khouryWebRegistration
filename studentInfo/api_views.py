@@ -10,6 +10,7 @@ SQL_REGISTRATION_APPROVAL = '''update registration set status = 'approved'
 where nuid = %(nuid)s and status = 'pending' and advisor_id = %(advisor_id)s '''
 @api_view(['GET'])
 def approvePendingRequest(request):
+    print("approvePendingRequest")
     nuid = request.query_params.get('nuid')
     advisor_id = request.query_params.get('advisor_id')
     cursor= connection.cursor()
@@ -17,8 +18,13 @@ def approvePendingRequest(request):
     message="succeed"
     try:
         cursor.execute(SQL_REGISTRATION_APPROVAL, val)
-    except:
-        message = "No permssion\n This is not your student! "
+        counts = cursor.rowcount
+        print(counts)
+        if counts ==  0:
+            message = "No permission\nThis is not your student! "
+    except Exception as e:
+        print(e)
+        message = "No permission\nThis is not your student! "
     cursor.close()
     return JsonResponse({"message": message}, safe=False)
 
