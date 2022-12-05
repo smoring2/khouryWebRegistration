@@ -136,12 +136,17 @@ class College(models.Model):
 
 class Course(models.Model):
     course_id = models.IntegerField(primary_key=True)
+    course_name = models.CharField(blank=True, null=True, max_length=100)
     instructor = models.ForeignKey('Instructor', models.DO_NOTHING, blank=True, null=True)
     meeting_time = models.TimeField(blank=True, null=True)
     max_num_of_students = models.IntegerField(blank=True, null=True)
     semester = models.IntegerField(blank=True, null=True)
     semester_hrs = models.IntegerField(blank=True, null=True)
     registered_num_of_stud = models.IntegerField(blank=True, null=True)
+    department_id = models.ForeignKey('Department', models.DO_NOTHING, blank=True, null=True)
+    campus_id = models.ForeignKey('Campus', models.DO_NOTHING, blank=True, null=True)
+    building_id = models.ForeignKey('Building', models.DO_NOTHING, blank=True, null=True)
+    room_id = models.ForeignKey('Room', models.DO_NOTHING, blank=True, null=True)
 
     class Meta:
         managed = False
