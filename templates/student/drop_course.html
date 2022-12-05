@@ -43,7 +43,7 @@
         <div class="col-10">
             <div class="input-group">
                 <form action="" method="POST"> {%  csrf_token %}
-                    <h4 class="border border-primary rounded p-2">Course Currently Taking</h4>
+                    <h4 class="border border-primary rounded p-2">Course Currently Taking Or Pending</h4>
                     {% for c in data.course_taking %}
                     <p>{{c}}</p>
                     <hr style="height:2px;border-width:0;color:gray;background-color:gray">
