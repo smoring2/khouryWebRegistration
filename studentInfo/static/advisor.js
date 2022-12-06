@@ -17,7 +17,7 @@ function reject(nuid, advisor_id) {
         return response.json();
     }).then(function (data) {
         console.log(data);
-        alert("Rejected successfully!")
+        alert(data.message)
         location.reload()
     }).catch(function () {
         console.log("error");

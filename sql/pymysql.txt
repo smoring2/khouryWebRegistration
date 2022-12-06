@@ -1,3 +1,57 @@
-advisor
-pymysql statement in advisor_views
-pymysql statement in api_views
+
+1. pymysql statement in advisor
+QL_ADVISOR_INFO = '''SELECT * FROM advisor where employee_id = %(employee_id)s'''
+SQL_COURSE_INFO = '''SELECT * from course where course_id = %(course_id)s '''
+SQL_STUDENT_INFO = '''select * from student where nuid = %(nuid)s '''
+SQL_CAMPUS_INFO = '''Select * from campus where campusid = %(campusid)s'''
+SQL_DEPARTMENT_INFO = '''Select * from department where department_id = %(department_id)s'''
+SQL_COLLEGE_INFO = '''Select * from college where collegeid = %(collegeid)s'''
+SQL_COURSE_DETAIL = '''select * from course where course_id = %(course_id)s '''
+SQL_INSTRUCTOR_INFO = '''select * from instructor where employee_id = %(instructor_id)s '''
+SQL_ADVISOR_STU = '''SELECT * FROM student where advisor = %(employee_id)s'''
+SQL_ADVISOR_STU_AVG_GPA = '''SELECT AVG(grade) FROM student GROUP BY advisor having advisor = %(employee_id)s'''
+SQL_ADVISOR_STU_MAX_GPA = '''SELECT MAX(grade) FROM student GROUP BY advisor having advisor = %(employee_id)s'''
+SQL_ADVISOR_STU_MIN_GPA = '''SELECT MIN(grade) FROM student GROUP BY advisor having advisor = %(employee_id)s'''
+SQL_ADVISOR_STU_UNDER_3 = '''select * from student where advisor = %(employee_id)s and grade < 3'''
+SQL_ADVISOR_STU_GAP_FULL = '''select * from student where advisor = %(employee_id)s and grade >= 4'''
+SQL_ADVISOR_STU_GPA_BETWEEN = '''select * from student  where advisor = %(employee_id)s and grade >= 3 AND grade < 4'''
+SQL_REGISTRATIONS_STU_LIST = '''select nuid, course_id from registration where advisor_id = %(employee_id)s and status='pending' '''
+SQL_REGISTRATION_COMPLETED = '''select course_id, grade from registration where nuid = %(nuid)s and status = 'completed' '''
+SQL_REGISTRATION_PENDING = '''select course_id from registration where nuid = %(nuid)s and status = 'pending' '''
+SQL_REGISTRATION_FAILED = '''select course_id, grade from registration where nuid = %(nuid)s and status = 'failed' '''
+SQL_REGISTRATION_APPROVED = '''select course_id from registration where nuid = %(nuid)s and status = 'approved' '''
+SQL_ADVISOR_STUS_LIST = '''select * from student where advisor = %(advisor)s '''
+SQL_COURSE_TAS = '''select * from ta where course_id = %(course_id)s '''
+
+
+SQL_COURSE_ADD_NUM = '''update course set registered_num_of_stud = registered_num_of_stud + 1 where course_id = %(course_id)s '''
+SQL_COURSE_INFO = '''select * from course where course_id = %(course_id)s '''
+SQL_REGISTRATION_APPROVAL = '''update registration set status = 'approved'
+where nuid = %(nuid)s and status = 'pending' and advisor_id = %(advisor_id)s '''
+SQL_REGISTRATION_PENDING_LIST = '''select * from registration where nuid = %(nuid)s and status = 'pending' and advisor_id = %(advisor_id)s'''
+SQL_REGISTRATION_REJECTION = '''update registration set status = 'rejected'
+where nuid= %(nuid)s and advisor_id = %(advisor_id)s and ( status = 'pending' or status ='approved') '''
+SQL_REGISTRATION_REMOVE = '''update registration set status = 'rejected'
+where nuid= %(nuid)s and course_id = %(course_id)s and advisor_id = %(advisor_id)s'''
+QL_REGISTRATION_INFO = '''select * from registration
+where nuid= %(nuid)s and course_id = %(course_id)s and advisor_id = %(advisor_id)s '''
+SQL_REGISTRATION_ADD = '''update registration set status = 'approved'
+where nuid= %(nuid)s and course_id = %(course_id)s and advisor_id = %(advisor_id)s'''
+SQL_REGISTRATION_INSERT = '''insert into registration values
+(%(nuid)s, %(course_id)s, %(advisor_id)s, null, 'approved')'''
+SQL_REGISTRATION_UPDATE_GPA = '''update registration set grade = %(grade)s where nuid= %(nuid)s and course_id = %(course_id)s and advisor_id = %(advisor_id)s '''
+SQL_STUDENT_GPA_UPDATE = '''update student set grade = %(grade)s where nuid = %(nuid)s '''
+SQL_STUDENT_GPA_CAL = '''SELECT avg(grade) from registration where grade is not null
+group by nuid having nuid = %(nuid)s'''
+SQL_STUDENT_INSERT = ''' insert into student (nuid, name, email, bdate, campusid, collegeid, department_id, phone, advisor, semesterhour, password) values (%(nuid)s, %(name)s, %(email)s,  %(bdate)s, %(campus)s, %(college)s, %(department)s, %(phone)s, %(advisor)s, 8, %(password)s) '''
+SQL_NUID_CHECK = '''select * from student where nuid = %(nuid)s '''
+SQL_STUDENT_UPDATE_HOURS = '''update student set semesterhour= %(hours)s where nuid = %(nuid)s '''
+SQL_ADVISOR_UPDATE_PHONE = '''update advisor set phone = %(phone)s where employee_id = %(advisor_id)s '''
+SQL_COURSE_ROOM = '''update course set campusid = %(campusid)s,
+building_id = %(building_id)s, room_id = %(room_id)s where course_id = %(course_id)s '''
+SQL_BUILDING_LIST = '''select * from building where campusid = %(campusid)s '''
+SQL_ROOM_LIST = '''select * from room where campusid = %(campusid)s and building_id = %(building_id)s '''
+SQL_STUDENT_INFO = '''select * from student where nuid = %(nuid)s '''
+SQL_TA_INSERT = '''insert into ta values (%(nuid)s, %(name)s, %(email)s, %(campusid)s, %(collegeid)s,
+%(department_id)s, %(phone)s, %(advisor)s, %(photo)s, %(grade)s, %(semester_hour)s, %(course_id)s) '''
+SQL_TA_REMOVE = ''' delete from ta where nuid = %(nuid)s and course_id = %(course_id)s '''
