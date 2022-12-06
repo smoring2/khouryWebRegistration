@@ -131,7 +131,7 @@ def getDegreeAudit(request, student_id):
                                         'points_earned': sh * min(4.0, comp[3])})
 
     res['cumulative_sh'].append("Cumulative Semester Hours: " + str(cum_sh))
-    res['cumulative_pts'].append("Cumulative Points: " + str(cum_gpa))
+    res['cumulative_pts'].append("Cumulative Points: " + str(round(cum_gpa, 2)))
     if cum_sh == 0:
         res['overall_gpa'].append("Overall GPA: " + str(0))
     else:
@@ -502,10 +502,12 @@ def isConflict(student_id, course_id):
 def getGrade(grade):
     if grade < 1.0:
         return 'F'
-    if grade <= 1.33:
+    if grade == 1.0:
         return 'D'
-    if grade <= 1.66:
+    if grade <= 1.33:
         return 'D+'
+    if grade <= 1.66:
+        return 'C-+'
     if grade <= 2:
         return 'C'
     if grade <= 2.33:
