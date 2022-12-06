@@ -5,7 +5,7 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 
 from django.db import connection
-NO_PERMISSION_ALERT = "No permission\nThis is not your student!"
+NO_PERMISSION_ALERT = "No records.\n Or No permission. This is not your student!"
 SUCCEED_ALERT = "Succeed"
 ERROR_ALERT = "Something wrong! Please try again!"
 SQL_COURSE_ADD_NUM = '''update course set registered_num_of_stud = registered_num_of_stud + 1 where course_id = %(course_id)s '''
@@ -38,6 +38,7 @@ def approvePendingRequest(request):
 
 SQL_REGISTRATION_REJECTION = '''update registration set status = 'rejected'
 where nuid= %(nuid)s and advisor_id = %(advisor_id)s and ( status = 'pending' or status ='approved') '''
+SQL_PENDING_REJECTION = '''delete from registration where nuid= %(nuid)s and advisor_id = %(advisor_id)s and status = 'pending' '''
 @api_view(['GET'])
 def rejectPendingRequest(request):
     nuid = request.query_params.get('nuid')
@@ -46,18 +47,21 @@ def rejectPendingRequest(request):
     val = {'nuid': int(nuid), 'advisor_id': int(advisor_id)}
     message="succeed"
     try:
-        cursor.execute(SQL_REGISTRATION_REJECTION, val)
+        cursor.execute(SQL_PENDING_REJECTION, val)
         counts = cursor.rowcount
         if counts == 0:
             message = NO_PERMISSION_ALERT
-    except:
-       message = ERROR_ALERT
+    except Exception as e:
+        print(e)
+        message = ERROR_ALERT
     cursor.close()
     return JsonResponse({"message": message}, safe=False)
 
 
 SQL_REGISTRATION_REMOVE = '''update registration set status = 'rejected'
 where nuid= %(nuid)s and course_id = %(course_id)s and advisor_id = %(advisor_id)s'''
+SQL_APPROVED_REJECTION = '''delete from registration where nuid= %(nuid)s and advisor_id = %(advisor_id)s and course_id = %(course_id)s and status = 'approved' '''
+SQL_REGISTERED_NUM_MINUS = '''update course set registered_num_of_stud = registered_num_of_stud - 1 where course_id = %(course_id)s '''
 @api_view(['GET'])
 def removeOneApprovedCourse(request):
     nuid = request.query_params.get('nuid')
@@ -65,12 +69,15 @@ def removeOneApprovedCourse(request):
     advisor_id = request.query_params.get('advisor_id')
     val = {'nuid': int(nuid), 'course_id': int(course_id), 'advisor_id': int(advisor_id)}
     cursor= connection.cursor()
-    message = "succeed"
+    message = ""
     try:
-        cursor.execute(SQL_REGISTRATION_REMOVE, val)
+        cursor.execute(SQL_APPROVED_REJECTION, val)
         counts = cursor.rowcount
         if counts == 0:
             message = NO_PERMISSION_ALERT
+        else:
+            cursor.execute(SQL_REGISTERED_NUM_MINUS, val)
+            message = SUCCEED_ALERT
     except:
         message = ERROR_ALERT
     cursor.close()
@@ -130,6 +137,7 @@ def addApprovedCourse(nuid, course_id, advisor_id):
         else:
             message = NO_PERMISSION_ALERT
     cursor.close()
+    print(message)
     return message
 
 
