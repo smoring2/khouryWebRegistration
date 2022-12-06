@@ -22,6 +22,15 @@ insert into building values (1, 'Ell Hall', '140 The Fenway', 1, 20),
        (6, 'Cullinane Hall', '177 Huntington', 6, 20),
        (7, 'Cushing Hall', '780 Columbus Ave', 7, 20);
 
+insert into room values (1, 1, 1, 80),
+                        (2, 2, 2, 100),
+                        (3, 3, 3, 90),
+                        (4, 4, 4, 120),
+                        (5, 5, 5, 100),
+                        (6, 6, 6, 100),
+                        (7, 7, 7, 80);
+
+
 insert into instructor values (1, 'lee@northeastern.edu', 11112222, 'Lee', 1, 1, '08:00:00'),
        (2, 'don@northeastern.edu', 11110000, 'Don', 2, 2, '10:00:00'),
        (3, 'alex@northeastern.edu', 22220000, 'Alex', 3, 3, '11:00:00'),
@@ -30,14 +39,14 @@ insert into instructor values (1, 'lee@northeastern.edu', 11112222, 'Lee', 1, 1,
        (6, 'peter@northeastern.edu', 55550000, 'Peter', 6, 6, '15:00:00'),
        (7, 'alicia@northeastern.edu', 66660000, 'Alicia', 7, 7, '16:00:00');
 
-insert into course values (5200, 'Database Management Systems', 1, '18:00:00', 45, 2, 4, 37),
-       (5520, 'Mobile Application Development', 1, '10:00:00', 45, 2, 4, 40),
-       (6620, 'Fundamentals of Cloud Computing', 2, '10:00:00', 70, 1, 4, 50),
-       (5800, 'Algorithms', 3, '18:00:00', 45, 3, 4, 35),
+insert into course values (5200, 'Database Management Systems', 1, '18:00:00', 45, 2, 4, 37, 1, null, null, null),
+       (5520, 'Mobile Application Development', 1, '10:00:00', 45, 2, 4, 40, 1, null, null, null),
+       (6620, 'Fundamentals of Cloud Computing', 2, '10:00:00', 70, 1, 4, 50, 1, null, null, null),
+       (5800, 'Algorithms', 3, '18:00:00', 45, 3, 4, 35, 1, null, null, null),
        (5008, 'Data Structures, Algorithms, and Their Applications within Computer Systems', 4, '14:00:00', 50, 1, 4,
-        40),
-       (5004, 'Object-Oriented Design', 5, '13:00:00', 60, 1, 4, 50),
-       (6650, 'Building Scalable Distributed System', 6, '19:00:00', 40, 3, 4, 40);
+        40, 1, null, null, null),
+       (5004, 'Object-Oriented Design', 5, '13:00:00', 60, 1, 4, 50, 1, null, null, null),
+       (6650, 'Building Scalable Distributed System', 6, '19:00:00', 40, 3, 4, 40, 1, null, null, null);
 
 insert into college values (12, 'Liberal art and sciences'),
        (13, 'Engineering'),
@@ -95,10 +104,3 @@ insert into registration values (1, 6620, 8, null, 'pending'),
                                 (6, 5004, 11, null, 'pending'),
                                 (7, 6620, 8, null, 'pending');
 
-insert into room values (1, 1, 1, 80),
-       (2, 2, 2, 100),
-       (3, 3, 3, 90),
-       (4, 4, 4, 120),
-       (5, 5, 5, 100),
-       (6, 6, 6, 100),
-       (7, 7, 7, 80);

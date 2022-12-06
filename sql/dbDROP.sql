@@ -11,14 +11,14 @@ drop table registration;
 drop table admin;
 drop table student;
 drop table ta;
-drop table room;
-drop table building;
 drop table course;
 drop table instructor;
+drop table room;
+drop table building;
+drop table campus;
 drop table college;
 drop table advisor;
 drop table department;
-drop table campus;
 
 drop view dpt1stu;
 drop view dpt1ad;

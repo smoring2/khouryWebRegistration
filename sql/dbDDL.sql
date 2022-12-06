@@ -19,16 +19,17 @@ create table campus (campusid int primary key, campus_name varchar(45), location
 
 create table building (building_id int primary key, building_name varchar(45), building_address varchar(45), campusid int,
                        num_of_classrooms int, foreign key (campusid) references campus(campusid));
+create table room (room_id int primary key, building_id int, campusid int, max_capacity int, foreign key (building_id)
+    references building(building_id), foreign key (campusid) references campus(campusid));
 
 create table instructor(employee_id int primary key, email varchar(100), phone int, name varchar(20), department_id int,
-                        campusid int, office_hour time, foreign key (department_id) references department(department_id),
+                        campusid int, office_hour time,
+                        foreign key (department_id) references department(department_id),
                         foreign key (campusid) references campus(campusid));
-
-create table course(course_id int primary key, course_name varchar(255), instructor_id int, meeting_time time, max_num_of_students int, semester int,
-                    semester_hrs int, registered_num_of_stud int, foreign key (instructor_id) references instructor(employee_id));
 
 
 create table college(collegeid int primary key, name varchar(45));
+
 
 
 create table advisor(employee_id int primary key, name varchar(45), email varchar(100), phone int, department_id int,
@@ -37,22 +38,30 @@ create table advisor(employee_id int primary key, name varchar(45), email varcha
 create table admin(employee_id int primary key, name varchar(45), email varchar(100), phone int, department_id int, foreign key (department_id)
     references department(department_id), password varchar(20));
 
+create table course(course_id int primary key, course_name varchar(255), instructor_id int, meeting_time time, max_num_of_students int, semester int,
+                    semester_hrs int, registered_num_of_stud int, department_id int, campusid int, building_id int, room_id int,
+                    foreign key (instructor_id) references instructor(employee_id),
+                    foreign key (department_id) references department(department_id),
+                    foreign key (campusid) references campus(campusid),
+                    foreign key (building_id) references building(building_id),
+                    foreign key (room_id) references room(room_id)
+);
+
 create table ta(nuid int, name varchar(45), email varchar(100), campusid int, collegeid int, department_id int,
                 phone int, advisor int(10), photo varchar(45), grade varchar(45), semester_hour varchar(45), course_id int,
                 primary key (nuid, course_id),
                 foreign key (advisor) references advisor(employee_id),
-                foreign key (campusid) references campus(campusid), foreign key (collegeid) references college(collegeid),
+                foreign key (campusid) references campus(campusid),
+                foreign key (collegeid) references college(collegeid),
                 foreign key (department_id) references department(department_id));
 
-create table room (room_id int primary key, building_id int, campusid int, max_capacity int, foreign key (building_id)
-    references building(building_id), foreign key (campusid) references campus(campusid));
 
 Create table student(nuid int primary key, name varchar(50), email varchar(100), bdate date, campusid int, collegeid int(10),
                      department_id int, phone int(11), advisor int(10), photo varchar(45), grade double, semesterhour int, password varchar(20),
                      foreign key (advisor) references advisor(employee_id),
                      foreign key (campusid) references campus(campusid),
-                      foreign key (collegeid) references college(collegeid),
-                      foreign key (department_id) references department(department_id));
+                     foreign key (collegeid) references college(collegeid),
+                     foreign key (department_id) references department(department_id));
 
 create table registration(nuid int, course_id int, advisor_id int, grade double, status varchar(10),
                           foreign key (course_id) references course(course_id),
