@@ -51,7 +51,6 @@ def getStudentNotification(request, student_id):
 
 
 def dropCourse(request, student_id):
-    removeRejFromRegistration()
     cursor = connection.cursor()
     course_currently_taking = getCourseCurrentlyTakingOrPending(student_id)
     if request.method == 'POST':
@@ -149,6 +148,8 @@ def getDegreeAudit(request, student_id):
 
 def getRegistrationInfo(request, student_id):
     cursor = connection.cursor()
+    for c in getCourseNumList():
+        updateEnrolledStudents(c)
     # Submit course registration form.
     if request.method == 'POST':
         nuid = student_id
@@ -169,6 +170,8 @@ def getRegistrationInfo(request, student_id):
                                                           'input a correct course num.')
         elif isCourseFull(course_id):
             return HttpResponse('The course you registered for has reached the capacity')
+        elif getStudentCurSh(student_id, course_id):
+            return HttpResponse('You have reached the maximum semester hour courses you can register')
         elif isConflict(student_id, course_id):
             return HttpResponse('There is a time conflict on your schedule, you cannot register this course')
         else:
@@ -253,6 +256,21 @@ def getCompleteCoursesByNuid(student_id):
 
 
 # Student Table
+# Get semester hour courses student registered.
+def getStudentCurSh(student_id, course_id):
+    sh = 0
+    cursor = connection.cursor()
+    for c in getCourseCurrentlyTakingOrPending(student_id):
+        cursor.execute('''SELECT semester_hrs FROM course where course_id = %(course_id)s ''',
+                       {'course_id': c})
+        sh += cursor.fetchall()[0][0]
+
+    cursor.execute('''SELECT semester_hrs FROM course where course_id = %(course_id)s ''',
+                   {'course_id': course_id})
+    sh += cursor.fetchall()[0][0]
+
+    return sh
+
 # Get student id list.
 def getStudentIdList():
     cursor = connection.cursor()
