@@ -131,7 +131,7 @@ def getDegreeAudit(request, student_id):
                                         'course_name': getCourseNameByCourseNum(comp[1]),
                                         'points_earned': sh * min(4.0, comp[3])})
 
-    res['cumulative_sh'].append("Cumulative Semester Hours: " + str(cum_sh))
+    res['cumulative_sh'].append("Cumulative Semester Hours: " + str(round(cum_sh, 2)))
     res['cumulative_pts'].append("Cumulative Points: " + str(round(cum_gpa, 2)))
     if cum_sh == 0:
         res['overall_gpa'].append("Overall GPA: " + str(0))
@@ -165,15 +165,12 @@ def getRegistrationInfo(request, student_id):
             if nuid == all_registration_info[i][0] and course_id == all_registration_info[i][1]:
                 return HttpResponse('Error, you cannot submit the same form.')
         if course_id not in getCourseNumList():
-            return HttpResponse(str(getCourseNumList()) + 'Course number you put is not in the course list, please'
+            return HttpResponse('Course number you put is not in the course list, please'
                                                           'input a correct course num.')
-        # Invalid case 2: The nuid student input is not his/ her own.
-        elif nuid != student_id:
-            return HttpResponse('You cannot help others to register courses.')
         elif isCourseFull(course_id):
             return HttpResponse('The course you registered for has reached the capacity')
-        # elif isConflict(student_id, course_id):
-        #    return HttpResponse('There is a time conflict on your schedule, you cannot register this course')
+        elif isConflict(student_id, course_id):
+            return HttpResponse('There is a time conflict on your schedule, you cannot register this course')
         else:
             Registration.objects.create(nuid=nuid, course_id=course_id, advisor_id=advisor_id, grade=None,
                                         status='pending')
@@ -316,6 +313,16 @@ def updateAllStudentGpa():
 
 
 # Registration Table
+# Get all informatin from registration table.
+def getAllRegistrationInfo():
+    cursor = connection.cursor()
+    cursor.execute('''SELECT * FROM registration''')
+    res = cursor.fetchall()
+    cursor.close()
+
+    return res
+
+
 # Remove status equals 'rejected' rows form registration table.
 def removeRejFromRegistration():
     cursor = connection.cursor()
@@ -418,10 +425,8 @@ def getCourseTime(course_id):
     cursor.execute('''SELECT meeting_time FROM course WHERE course_id = %(course_id)s''', {'course_id': course_id})
     res.append(str(cursor.fetchall()[0][0]))
     cursor.execute('''SELECT date FROM course WHERE course_id = %(course_id)s''', {'course_id': course_id})
-    if not cursor.fetchall():
-        res.append(None)
-    else:
-        res.append(str(cursor.fetchall()[0][0]))
+
+    res.append(str(cursor.fetchall()[0][0]))
     cursor.close()
 
     return res
@@ -459,6 +464,7 @@ def getAllCourseInfo():
 
     return res
 
+
 # Get course number list.
 def getCourseNumList():
     cursor = connection.cursor()
@@ -491,7 +497,7 @@ def timeConversion(date, time):
     one_day = 24 * 60
     hour = int(time[0 : 2])
     min = int(time[3 : 5])
-    time_to_min = one_day - 1 * (date_map[date] - 1) + hour * 60 + min
+    time_to_min = one_day * (date_map[date] - 1) + hour * 60 + min
 
     return time_to_min
 
@@ -504,39 +510,49 @@ def isConflict(student_id, course_id):
     abs_course_time = timeConversion(course_time[1], course_time[0])
     reg_courses_time_interval = []
 
-    for interval in getAllCourseInfo():
+    for interval in getAllRegistrationInfo():
         if interval[0] == student_id and (interval[4] == 'pending' or interval[4] == 'approved'):
-            ct = getCourseTime(interval[1])
+            course = interval[1]
+            ct = timeConversion(getCourseTime(course)[1], getCourseTime(course)[0])
             reg_courses_time_interval.append([ct, ct + 180])
 
     for ea in reg_courses_time_interval:
         if ea[0] < abs_course_time + 180 < ea[1] or ea[0] < abs_course_time < ea[1]:
-            return False
+            return True
 
-    return True
+    return False
 
+
+# Grade letter gpa conversion:
+# A+: 4.33 A: 4.00 A-: 3.66
+# B+: 3.33 B: 3.00 B-: 2.66
+# C+: 2.33 C: 2.00 C-: 1.66
+# D+: 1.33 D: 1.00 D-: 0.66
+# F: 0.00
 def getGrade(grade):
-    if grade < 1.0:
+    if grade < 0.66:
         return 'F'
-    if grade == 1.0:
+    if grade < 1.0:
+        return 'D-'
+    if grade < 1.33:
         return 'D'
-    if grade <= 1.33:
-        return 'D+'
-    if grade <= 1.66:
-        return 'C-+'
-    if grade <= 2:
+    if grade < 1.66:
+        return 'D++'
+    if grade < 2:
+        return 'C-'
+    if grade < 2.33:
         return 'C'
-    if grade <= 2.33:
+    if grade < 2.66:
         return 'C+'
-    if grade <= 2.66:
+    if grade < 3:
         return 'B-'
-    if grade <= 3:
+    if grade < 3.33:
         return 'B'
-    if grade <= 3.33:
+    if grade < 3.66:
         return 'B+'
-    if grade <= 3.66:
+    if grade < 4.00:
         return 'A-'
-    if grade <= 4.00:
+    if grade < 4.33:
         return 'A'
 
     return 'A+'
