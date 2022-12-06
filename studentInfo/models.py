@@ -143,10 +143,11 @@ class Course(models.Model):
     semester = models.IntegerField(blank=True, null=True)
     semester_hrs = models.IntegerField(blank=True, null=True)
     registered_num_of_stud = models.IntegerField(blank=True, null=True)
-    department_id = models.ForeignKey('Department', models.DO_NOTHING, blank=True, null=True)
-    campus_id = models.ForeignKey('Campus', models.DO_NOTHING, blank=True, null=True)
-    building_id = models.ForeignKey('Building', models.DO_NOTHING, blank=True, null=True)
-    room_id = models.ForeignKey('Room', models.DO_NOTHING, blank=True, null=True)
+    department = models.ForeignKey('Department', models.DO_NOTHING, blank=True, null=True)
+    campusid = models.ForeignKey(Campus, models.DO_NOTHING, db_column='campusid', blank=True, null=True)
+    building = models.ForeignKey(Building, models.DO_NOTHING, blank=True, null=True)
+    room = models.ForeignKey('Room', models.DO_NOTHING, blank=True, null=True)
+    date = models.CharField(max_length=2, blank=True, null=True)
 
     class Meta:
         managed = False
