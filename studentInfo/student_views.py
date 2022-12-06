@@ -108,7 +108,7 @@ def getDegreeAudit(request, student_id):
         res['in_progress'].append({'course_id': str(ea), 'course_name': getNameByCourseNum(ea), 'grade': 'IP'})
 
     # Get course list that the student have completed.
-    cursor.execute('''SELECT * FROM registration WHERE status = 'completed' ''')
+    cursor.execute('''SELECT * FROM registration WHERE (status = 'failed' OR status = 'completed') ''')
     comp_list = cursor.fetchall()
 
     grade_map = {4.00: 'A', 3.66: 'A-', 3.33: 'B+', 3: 'B', 2.66: 'B-', 2.33: 'C+', 2.00: 'C', 1.66: 'C-',
@@ -275,7 +275,7 @@ def isValidNuid(student_id):
 # Given student id, calculate the cumulative GPA that student have so far.
 def calculateStudentGpa(student_id):
     cursor = connection.cursor()
-    cursor.execute('''SELECT * FROM registration WHERE status = 'completed' ''')
+    cursor.execute('''SELECT * FROM registration WHERE (status = 'failed' OR status = 'completed') ''')
     comp_list = cursor.fetchall()
 
     cum_sh = 0
