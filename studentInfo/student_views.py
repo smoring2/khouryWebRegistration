@@ -111,8 +111,8 @@ def getDegreeAudit(request, student_id):
     cursor.execute('''SELECT * FROM registration WHERE (status = 'failed' OR status = 'completed') ''')
     comp_list = cursor.fetchall()
 
-    grade_map = {4.00: 'A', 3.66: 'A-', 3.33: 'B+', 3: 'B', 2.66: 'B-', 2.33: 'C+', 2.00: 'C', 1.66: 'C-',
-                 1.33: 'D+', 1.00: 'D', 0: 'F'}
+    # grade_map = {4.00: 'A', 3.66: 'A-', 3.33: 'B+', 3: 'B', 2.66: 'B-', 2.33: 'C+', 2.00: 'C', 1.66: 'C-',
+    #             1.33: 'D+', 1.00: 'D', 0: 'F'}
 
     cum_sh = 0
     cum_gpa = 0.0
@@ -126,7 +126,7 @@ def getDegreeAudit(request, student_id):
             sh = cursor.fetchall()[0][0]
             cum_sh += sh
             cum_gpa += sh * min(4.0, comp[3])
-            res['complete_list'].append({'course_id': comp[1], 'grade': grade_map[comp[3]],
+            res['complete_list'].append({'course_id': comp[1], 'grade': getGrade(comp[3]),
                                         'course_name': getCourseNameByCourseNum(comp[1]),
                                         'points_earned': sh * min(4.0, comp[3])})
 
@@ -164,7 +164,8 @@ def getRegistrationInfo(request, student_id):
             if nuid == all_registration_info[i][0] and course_id == all_registration_info[i][1]:
                 return HttpResponse('Error, you cannot submit the same form.')
         if course_id not in getCourseNumList():
-            return HttpResponse(str(getCourseNumList()) + 'Course number you put is not in the course list, please input a correct course num.')
+            return HttpResponse(str(getCourseNumList()) + 'Course number you put is not in the course list, please'
+                                                          'input a correct course num.')
         # Invalid case 2: The nuid student input is not his/ her own.
         elif nuid != student_id:
             return HttpResponse('You cannot help others to register courses.')
@@ -497,3 +498,25 @@ def isConflict(student_id, course_id):
             return False
 
     return True
+
+def getGrade(grade):
+    if grade < 1.0:
+        return 'F'
+    if grade <= 1.33:
+        return 'D'
+    if grade <= 1.66:
+        return 'D+'
+    if grade <= 2:
+        return 'C'
+    if grade <= 2.33:
+        return 'C+'
+    if grade <= 2.66:
+        return 'B-'
+    if grade <= 3:
+        return 'B'
+    if grade <= 3.33:
+        return 'B+'
+    if grade <= 3.66:
+        return 'A-'
+
+    return 'A'
