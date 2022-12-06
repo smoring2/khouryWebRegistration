@@ -198,8 +198,18 @@ SQL_REGISTRATION_APPROVED = '''select course_id from registration where nuid = %
 def getStudentSearchDetails(request):
     nuid = request.GET.get('nuid')
     advisor_id = request.GET.get('advisor')
+    details = {
+        'nuid': nuid,
+        'advisor_id': advisor_id,
+    }
     advisor_info = getAdvisorInfoById(advisor_id)
     student_info = getStudentInfoByNuid(nuid)
+    if len(student_info) == 0:
+        context = {
+            'data': details
+        }
+        return render(request, 'advisor/advisor_search_details.html', context)
+
     stu_advisor_id = student_info[0][8]
     stu_advisor_info = getAdvisorInfoById(stu_advisor_id)
     campus_info = getCampusByCampusId(student_info[0][4])
@@ -300,24 +310,30 @@ def getCourseSearchDetails(request):
         'advisor_name': advisor_info[0][1],
      }
      course_id = request.GET.get('course_id')
+     results['course_id'] = course_id
      course_info = getCourseInfoByCourseId(course_id)
+     if len(course_info) == 0:
+        context = {
+            'data': results
+        }
+        return render(request, 'advisor/advisor_course_details.html', context)
+
      if course_info:
-        results['course_id'] = course_id
         results['course_name'] = course_info[0][1]
         results['instructor_id'] = course_info[0][2]
         results['meeting_time'] = course_info[0][3]
-        results['max_num_of_students'] = course_info[0][4]
-        results['semester'] = course_info[0][5]
-        results['semester_hrs'] = course_info[0][6]
-        results['registered_num_of_stud'] = course_info[0][7]
-        results['department_id'] = course_info[0][8]
-        results['campusid'] = course_info[0][9]
-        results['building_id'] = course_info[0][10]
-        results['room_id'] = course_info[0][11]
-     instructor_id = course_info[0][2]
-     instructor_info = getInstructorByInstructorId(instructor_id)
-     results['instructor_name'] = instructor_info[0][3]
-
+        results['meeting_day'] = course_info[0][4]
+        results['max_num_of_students'] = course_info[0][5]
+        results['semester'] = course_info[0][6]
+        results['semester_hrs'] = course_info[0][7]
+        results['registered_num_of_stud'] = course_info[0][8]
+        results['department_id'] = course_info[0][9]
+        results['campusid'] = course_info[0][10]
+        results['building_id'] = course_info[0][11]
+        results['room_id'] = course_info[0][12]
+        instructor_id = course_info[0][2]
+        instructor_info = getInstructorByInstructorId(instructor_id)
+        results['instructor_name'] = instructor_info[0][3]
      val = {'course_id': int(course_id)}
      cursor = connection.cursor()
      cursor.execute(SQL_COURSE_TAS, val)

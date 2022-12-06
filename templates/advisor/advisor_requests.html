@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     {% load static %}
-    <script src="{% static 'advisor.js' %}"  type="text/javascript"></script>
+    <script src="{% static 'advisor.js' %}" type="text/javascript"></script>
     <style>
         #topBlackBar {
             border-top: 50px solid #000;
@@ -30,6 +30,11 @@
             </div>
         </div>
         <div class="col-10">
+            {% if data.pendings|length == 0 %}
+            <div>
+                <p>No pending requests</p>
+            </div>
+            {% else %}
             {% for pending in data.pendings %}
             <div class="border p-2 rounded">
                 <h4 class="bg-info rounded p-1 bg-gradient">Name: {{pending.name}}</h4>
@@ -38,13 +43,15 @@
                 <div class="bg-light rounded p-2">
                     <p class="fw-bolder">Course Plan</p>
                     {% for c in pending.courses %}
-                        <p>{{c.course_id}} {{c.course_name}}</p>
+                    <p>{{c.course_id}} {{c.course_name}}</p>
                     {% endfor %}
                 </div>
-                <button class="btn btn-primary" onclick="approve({{pending.nuid}}, {{data.advisor_id}})">Approve</button>
+                <button class="btn btn-primary" onclick="approve({{pending.nuid}}, {{data.advisor_id}})">Approve
+                </button>
                 <button class="btn btn-danger" onclick="reject({{pending.nuid}}, {{data.advisor_id}})">Reject</button>
             </div>
             {% endfor %}
+            {% endif %}
         </div>
     </div>
 </div>
