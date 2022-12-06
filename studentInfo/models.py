@@ -259,7 +259,7 @@ class Student(models.Model):
     campusid = models.ForeignKey(Campus, models.DO_NOTHING, db_column='campusid', blank=True, null=True)
     collegeid = models.ForeignKey(College, models.DO_NOTHING, db_column='collegeid', blank=True, null=True)
     department = models.ForeignKey(Department, models.DO_NOTHING, blank=True, null=True)
-    phone = models.IntegerField(blank=True, null=True)
+    phone = models.CharField(blank=True, null=True, max_length=10)
     advisor = models.ForeignKey(Advisor, models.DO_NOTHING, db_column='advisor', blank=True, null=True)
     photo = models.CharField(max_length=45, blank=True, null=True)
     grade = models.FloatField(blank=True, null=True)

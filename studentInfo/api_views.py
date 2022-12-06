@@ -5,6 +5,9 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 
 from django.db import connection
+NO_PERMISSION_ALERT = "No records.\n Or No permission. This is not your student!"
+SUCCEED_ALERT = "Succeed"
+ERROR_ALERT = "Something wrong! Please try again!"
 SQL_COURSE_ADD_NUM = '''update course set registered_num_of_stud = registered_num_of_stud + 1 where course_id = %(course_id)s '''
 SQL_COURSE_INFO = '''select * from course where course_id = %(course_id)s '''
 SQL_REGISTRATION_APPROVAL = '''update registration set status = 'approved'
@@ -12,26 +15,30 @@ where nuid = %(nuid)s and status = 'pending' and advisor_id = %(advisor_id)s '''
 SQL_REGISTRATION_PENDING_LIST = '''select * from registration where nuid = %(nuid)s and status = 'pending' and advisor_id = %(advisor_id)s'''
 @api_view(['GET'])
 def approvePendingRequest(request):
-    print("approvePendingRequest")
     nuid = request.query_params.get('nuid')
     advisor_id = request.query_params.get('advisor_id')
-    cursor= connection.cursor()
     val = {'nuid': int(nuid), 'advisor_id': int(advisor_id)}
-    message="succeed"
+    message= ""
     try:
-        cursor.execute(SQL_REGISTRATION_APPROVAL, val)
-        counts = cursor.rowcount
-        print(counts)
-        if counts ==  0:
-            message = "No permission\nThis is not your student! "
+        cursor= connection.cursor()
+        cursor.execute(SQL_REGISTRATION_PENDING_LIST, val)
+        course_list = cursor.fetchall()
+        cursor.close()
+        if course_list:
+            for c in course_list:
+                c_id = c[1]
+                m = addApprovedCourse(nuid, c_id, advisor_id)
+                message = message + m + "\n"
+        else:
+            message = NO_PERMISSION_ALERT
     except Exception as e:
         print(e)
-        message = "No permission\nThis is not your student! "
-    cursor.close()
+        message = ERROR_ALERT
     return JsonResponse({"message": message}, safe=False)
 
 SQL_REGISTRATION_REJECTION = '''update registration set status = 'rejected'
 where nuid= %(nuid)s and advisor_id = %(advisor_id)s and ( status = 'pending' or status ='approved') '''
+SQL_PENDING_REJECTION = '''delete from registration where nuid= %(nuid)s and advisor_id = %(advisor_id)s and status = 'pending' '''
 @api_view(['GET'])
 def rejectPendingRequest(request):
     nuid = request.query_params.get('nuid')
@@ -40,15 +47,21 @@ def rejectPendingRequest(request):
     val = {'nuid': int(nuid), 'advisor_id': int(advisor_id)}
     message="succeed"
     try:
-        cursor.execute(SQL_REGISTRATION_REJECTION, val)
-    except:
-       message = "No permssion\nThis is not your student! "
+        cursor.execute(SQL_PENDING_REJECTION, val)
+        counts = cursor.rowcount
+        if counts == 0:
+            message = NO_PERMISSION_ALERT
+    except Exception as e:
+        print(e)
+        message = ERROR_ALERT
     cursor.close()
     return JsonResponse({"message": message}, safe=False)
 
 
 SQL_REGISTRATION_REMOVE = '''update registration set status = 'rejected'
 where nuid= %(nuid)s and course_id = %(course_id)s and advisor_id = %(advisor_id)s'''
+SQL_APPROVED_REJECTION = '''delete from registration where nuid= %(nuid)s and advisor_id = %(advisor_id)s and course_id = %(course_id)s and status = 'approved' '''
+SQL_REGISTERED_NUM_MINUS = '''update course set registered_num_of_stud = registered_num_of_stud - 1 where course_id = %(course_id)s '''
 @api_view(['GET'])
 def removeOneApprovedCourse(request):
     nuid = request.query_params.get('nuid')
@@ -56,14 +69,17 @@ def removeOneApprovedCourse(request):
     advisor_id = request.query_params.get('advisor_id')
     val = {'nuid': int(nuid), 'course_id': int(course_id), 'advisor_id': int(advisor_id)}
     cursor= connection.cursor()
-    message = "succeed"
+    message = ""
     try:
-        cursor.execute(SQL_REGISTRATION_REMOVE, val)
+        cursor.execute(SQL_APPROVED_REJECTION, val)
         counts = cursor.rowcount
         if counts == 0:
-            message = "No permssion\nThis is not your student! "
+            message = NO_PERMISSION_ALERT
+        else:
+            cursor.execute(SQL_REGISTERED_NUM_MINUS, val)
+            message = SUCCEED_ALERT
     except:
-        message = "No permssion\nThis is not your student! "
+        message = ERROR_ALERT
     cursor.close()
     return JsonResponse({'message': message}, safe=False)
 
@@ -78,40 +94,52 @@ def addOneApprovedCourse(request):
     nuid = request.query_params.get('nuid')
     course_id = request.query_params.get('course_id')
     advisor_id = request.query_params.get('advisor_id')
+    message = addApprovedCourse(nuid, course_id, advisor_id)
+    return JsonResponse({'message': message}, safe=False)
+
+def addApprovedCourse(nuid, course_id, advisor_id):
+    print('addApprovedCourse')
     cursor= connection.cursor()
     val = {'nuid': int(nuid), 'course_id': int(course_id), 'advisor_id': int(advisor_id)}
-    message = "succeed"
-    try:
-        cursor.execute(SQL_REGISTRATION_INFO, val)
-        registration_info = cursor.fetchall()
-        print('registration_info')
-        if len(registration_info) > 0 and (registration_info[0][4] == 'completed' or registration_info[0][4] == 'failed'):
-            message = "Student already has taken this course"
-            print(message)
-        else:
-            print(val)
-            print(SQL_COURSE_INFO)
-            cursor.execute(SQL_COURSE_INFO, val)
-            c_info = cursor.fetchall()
-            print(c_info)
-            if c_info:
-                print(c_info[0][4])
-                print(c_info[0][7])
-                max_num_of_stus = int(c_info[0][4])
-                reg_num_of_stus = int(c_info[0][7])
-                if max_num_of_stus > reg_num_of_stus:
-                    if registration_info:
-                        cursor.execute(SQL_REGISTRATION_ADD, val)
-                    else:
-                        cursor.execute(SQL_REGISTRATION_INSERT, val)
-                    cursor.execute(SQL_COURSE_ADD_NUM, val)
+    print(val)
+    message = str(course_id) + " added successfully"
+    cursor.execute('''SElect * from student where nuid = %(nuid)s ''', {'nuid': int(nuid)})
+    student_info = cursor.fetchall()
+    if student_info:
+        stu_advisor = int(student_info[0][8])
+        print(stu_advisor)
+        if stu_advisor == int(advisor_id):
+            try:
+                cursor.execute(SQL_REGISTRATION_INFO, val)
+                registration_info = cursor.fetchall()
+                if len(registration_info) > 0 and (registration_info[0][4] == 'completed' or registration_info[0][4] == 'failed'):
+                    message = "Student already has taken this course"
                 else:
-                    message="This course is full!"
-    except Exception as e:
-        print(e)
-        message = "No permssion\nThis is not your student! "
+                    cursor.execute(SQL_COURSE_INFO, val)
+                    c_info = cursor.fetchall()
+                    print(c_info)
+                    if c_info:
+                        max_num_of_stus = int(c_info[0][4])
+                        reg_num_of_stus = int(c_info[0][7])
+                        if max_num_of_stus > reg_num_of_stus:
+                            if registration_info:
+                                cursor.execute(SQL_REGISTRATION_ADD, val)
+                            else:
+                                cursor.execute(SQL_REGISTRATION_INSERT, val)
+                            cursor.execute(SQL_COURSE_ADD_NUM, val)
+                        else:
+                            message="This course " + str(course_id) + " is full!"
+                    else:
+                        message = str(course_id) + " not found"
+            except Exception as e:
+                print(e)
+                message = "Something wrong with "  +  str(course_id) + "! Please try again"
+        else:
+            message = NO_PERMISSION_ALERT
     cursor.close()
-    return JsonResponse({'message': message}, safe=False)
+    print(message)
+    return message
+
 
 SQL_REGISTRATION_UPDATE_GPA = '''update registration set grade = %(grade)s where nuid= %(nuid)s and course_id = %(course_id)s and advisor_id = %(advisor_id)s '''
 SQL_STUDENT_GPA_UPDATE = '''update student set grade = %(grade)s where nuid = %(nuid)s '''
@@ -128,19 +156,19 @@ def updateGPA(request):
     message = "succeed"
     try:
         cursor.execute(SQL_REGISTRATION_UPDATE_GPA, val)
-        print(cursor.fetchall())
-        cursor.execute(SQL_STUDENT_GPA_CAL, val)
-        gpas = cursor.fetchall()
-        curr_gpa = gpas[0][0]
-        val = {'grade': float(curr_gpa), 'nuid' : int(nuid)}
-        cursor.execute(SQL_STUDENT_GPA_UPDATE, val)
         counts = cursor.rowcount
         print(counts)
         if counts ==  0:
-            message = "No permission\nThis is not your student! "
+            message = NO_PERMISSION_ALERT
+        else:
+            cursor.execute(SQL_STUDENT_GPA_CAL, val)
+            gpas = cursor.fetchall()
+            curr_gpa = gpas[0][0]
+            val = {'grade': float(curr_gpa), 'nuid' : int(nuid)}
+            cursor.execute(SQL_STUDENT_GPA_UPDATE, val)
     except Exception as e:
         print(e)
-        message = "No permssion\nThis is not your student! "
+        message = ERROR_ALERT
     cursor.close()
     return JsonResponse({'message': message}, safe=False)
 
@@ -183,14 +211,14 @@ def insertStudent(request):
     }
     print("test-val")
     print(val)
-    message = "succeed"
+    message = SUCCEED_ALERT
     succeed = 0
     try:
         cursor.execute(SQL_STUDENT_INSERT, val)
         succeed = 1
     except Exception as e:
         print(e)
-        message = "Something wrong. Please try again"
+        message = ERROR_ALERT
     cursor.close()
     return JsonResponse({'message': message, "succeed": succeed}, safe=False)
 
@@ -204,9 +232,9 @@ def updateHours(request):
     message = ''
     try:
         cursor.execute(SQL_STUDENT_UPDATE_HOURS, val)
-        message = 'succeed!'
+        message = SUCCEED_ALERT
     except:
-        message = 'something wrong! Please try again!'
+        message = ERROR_ALERT
     cursor.close()
     print(message)
     return JsonResponse({'message': message}, safe=False)
@@ -219,12 +247,12 @@ def updatePhone(request):
     phone = request.query_params.get('phone')
     cursor= connection.cursor()
     val = {'advisor_id': int(advisor_id), 'phone': int(phone)}
-    message = 'succeed'
+    message = SUCCEED_ALERT
     try:
         cursor.execute(SQL_ADVISOR_UPDATE_PHONE, val)
     except Exception as e:
         print(e)
-        message = 'something wrong! Please try again!'
+        message = ERROR_ALERT
     cursor.close()
     return JsonResponse({'message': message}, safe=False)
 
@@ -238,15 +266,13 @@ def saveClassRoom(request):
     room_id = request.query_params.get('room_id')
     val = {'course_id': int(course_id), 'campusid': int(campusid), 'building_id': int(building_id), 'room_id': int(room_id)}
     cursor = connection.cursor()
-    succeed = "Succeed"
-    failed = "Something wrong. Please try again!"
     message = ''
     try:
         cursor.execute(SQL_COURSE_ROOM, val)
-        message = succeed
+        message = SUCCEED_ALERT
     except Exception as e:
         print(e)
-        message = failed
+        message = ERROR_ALERT
     cursor.close()
     return JsonResponse({'message': message}, safe=False)
 
@@ -257,17 +283,15 @@ def getBuildingList(request):
     campusid = request.query_params.get('campusid')
     val = {'campusid': int(campusid)}
     cursor = connection.cursor()
-    succeed = "Succeed"
-    failed = "Something wrong. Please try again!"
     message = ''
     buildings = {}
     try:
         cursor.execute(SQL_BUILDING_LIST, val)
-        message = succeed
+        message = SUCCEED_ALERT
         buildings = cursor.fetchall()
     except Exception as e:
         print(e)
-        message = failed
+        message = ERROR_ALERT
     cursor.close()
     return JsonResponse({'message': message, 'buildings': buildings}, safe=False)
 
@@ -278,16 +302,15 @@ def getRoomList(request):
     building_id = request.query_params.get('building_id')
     val = {'campusid': int(campusid), 'building_id': int(building_id)}
     cursor = connection.cursor()
-    failed = "Something wrong. Please try again!"
     message = ''
     rooms = {}
     try:
         cursor.execute(SQL_ROOM_LIST, val)
-        message = succeed
+        message = SUCCEED_ALERT
         rooms = cursor.fetchall()
     except Exception as e:
         print(e)
-        message = failed
+        message = ERROR_ALERT
     cursor.close()
     return JsonResponse({'message': message, 'rooms': rooms}, safe=False)
 
@@ -317,18 +340,17 @@ def addTaForCourse(request):
         'course_id': int(course_id)
     }
     message = ''
-    succeed = 'succeed'
-    failed = 'Something wrong. Please try again!'
+
     try:
         cursor.execute(SQL_TA_INSERT, val)
         counts = cursor.rowcount
         if counts > 0:
-            message = succeed
+            message = SUCCEED_ALERT
         else :
-            message = failed
+            message = ERROR_ALERT
     except  Exception as e:
         print(e)
-        message = failed
+        message = ERROR_ALERT
     return JsonResponse({'message': message}, safe=False)
 
 SQL_TA_REMOVE = ''' delete from ta where nuid = %(nuid)s and course_id = %(course_id)s '''
@@ -339,15 +361,14 @@ def removeTaForCourse(request):
     val = {'nuid': int(nuid), 'course_id': int(course_id)}
     cursor = connection.cursor()
     message = ''
-    succeed = 'Succeed'
-    failed = 'Something wrong. Please try again!'
+
     try:
         cursor.execute(SQL_TA_REMOVE, val)
         counts = cursor.rowcount
         if counts > 0:
-            message = succeed
+            message = SUCCEED_ALERT
         else :
-            message = failed
+            message = ERROR_ALERT
     except  Exception as e:
         print(e)
         message = failed
