@@ -71,6 +71,7 @@ def dropCourse(request, student_id):
 
             cursor.execute('''DELETE FROM registration WHERE nuid = %(nuid)s AND course_id = %(course_id)s ''',
                            {'nuid': nuid, 'course_id': course_id})
+            updateEnrolledStudents(course_id)
             return HttpResponse('Drop succeed')
 
     res = {
@@ -171,8 +172,8 @@ def getRegistrationInfo(request, student_id):
             return HttpResponse('You cannot help others to register courses.')
         elif isCourseFull(course_id):
             return HttpResponse('The course you registered for has reached the capacity')
-        elif isConflict(student_id, course_id):
-            return HttpResponse('There is a time conflict on your schedule, you cannot register this course')
+        # elif isConflict(student_id, course_id):
+        #    return HttpResponse('There is a time conflict on your schedule, you cannot register this course')
         else:
             Registration.objects.create(nuid=nuid, course_id=course_id, advisor_id=advisor_id, grade=None,
                                         status='pending')
@@ -355,13 +356,13 @@ def getCourseInProgress(student_id):
     cursor = connection.cursor()
     cursor.execute('''SELECT course_id FROM registration WHERE nuid = %(student_id)s AND status = 'approved'
     ''', {'student_id': student_id})
-    res = cursor.fetchall()
+    res = []
+
+    for data in cursor.fetchall():
+        res.append(data[0])
     cursor.close()
 
-    if res:
-        return res[0]
-
-    return []
+    return res
 
 
 # Input takes a student NUID, get all course numbers that the student submitted registration form and still pending
@@ -397,6 +398,19 @@ def getAdvisorByStudentId(student_id):
 
 
 # Course Table
+# Update student enrollment of designated courses based on the information in Registration table.
+def updateEnrolledStudents(course_id):
+    cursor = connection.cursor()
+    stu_enrollment = 0
+    cursor.execute('''SELECT * FROM registration WHERE course_id = %(course_id)s''', {'course_id': course_id})
+
+    for ea in cursor.fetchall():
+        if ea[4] == 'approved':
+            stu_enrollment += 1
+    cursor.execute('''UPDATE course set registered_num_of_stud = %(stu_enrollment)s WHERE course_id = 
+    %(course_id)s ''', {'stu_enrollment': stu_enrollment, 'course_id': course_id})
+
+
 # Get course time by course id.
 def getCourseTime(course_id):
     res = []
@@ -411,6 +425,8 @@ def getCourseTime(course_id):
     cursor.close()
 
     return res
+
+
 # The method takes course id as input, return if the course has reached it's capacity.
 def isCourseFull(course_id):
     cursor = connection.cursor()
@@ -482,7 +498,7 @@ def timeConversion(date, time):
 
 def isConflict(student_id, course_id):
     course_time = getCourseTime(course_id)
-    if course_time[1] == None:
+    if course_time[1] is None:
         return False
 
     abs_course_time = timeConversion(course_time[1], course_time[0])
@@ -520,5 +536,7 @@ def getGrade(grade):
         return 'B+'
     if grade <= 3.66:
         return 'A-'
+    if grade <= 4.00:
+        return 'A'
 
-    return 'A'
+    return 'A+'
