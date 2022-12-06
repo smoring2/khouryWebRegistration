@@ -31,16 +31,16 @@
                     <form method="POST" enctype="multipart/form-data">
                         <div class="card-body">
                             
-                            <div class="form-group">
-                                <div class="form-row form-add-course">
+                            <div class="col col-md-9 col-12 form-add-student">
+                                <div class="form-row form-add-student">
                                     <div class="col-3 mb-3">
                                         <label class="form-label">Nuid:  </label>
                                         <input type="number" name="nuid" class="form-control" required>
                                     </div>
                                 </div>
                             </div>
-                            <div class="col col-md-9 col-12 form-add-course">
-                                <div class="form-row form-add-course">
+                            <div class="col col-md-9 col-12 form-student-student">
+                                <div class="form-row form-add-student">
                                     <div class="col-3 mb-3">
                                         <label class="form-label">Name:  </label>
                                         <input type="text" name="name" class="form-control" required>
@@ -48,8 +48,8 @@
                                 </div>
                             </div>
                 
-                            <div class="col col-md-9 col-12">
-                                <div class="form-row form-add-course">
+                            <div class="col col-md-9 col-12 form-student-student">
+                                <div class="form-row form-add-student">
                                     <div class="col-3 mb-3">
                                         <label class="form-label">Email:  </label>
                                         <input type="text" name="email" class="form-control" required>
@@ -58,7 +58,7 @@
                             </div>
 
                             <div class="col col-md-9 col-12">
-                                <div class="form-row form-add-course">
+                                <div class="form-row form-add-student">
                                     <div class="col-3 mb-3">
                                         <label class="form-label">Birthday:  </label>
                                         <input type="date" name="bdate" class="form-control" required>
@@ -67,33 +67,61 @@
                             </div>
 
                             <div class="col col-md-9 col-12">
-                                <div class="form-row form-add-course">
+                                <div class="form-row form-add-student">
                                     <div class="col-3 mb-3">
-                                        <label class="form-label">Campus:  </label>
-                                        <input type="text" name="campusid" class="form-control" required>                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="col col-md-9 col-12">
-                                <div class="form-row form-add-course">
-                                    <div class="col-3 mb-3">
-                                        <label class="form-label">College:  </label>
-                                        <input type="text" name="collegeid" class="form-control" required>
+                                        <label class="form-label">Campus ID:  </label>
+                                        <select name="campusid" class="form-select">
+                                            <option selected>Choose the campus ID</option>
+                                            <option value="1">1 Silicon Valley</option>
+                                            <option value="2">2 Seattle</option>
+                                            <option value="3">3 Boston</option>
+                                            <option value="4">4 Charlotte</option>
+                                            <option value="5">5 San Francisco</option>
+                                            <option value="6">6 Portland</option>
+                                            <option value="7">7 Vancouver</option>
+                                        </select>                                    
                                     </div>
                                 </div>
                             </div>
 
                             <div class="col col-md-9 col-12">
-                                <div class="form-row form-add-course">
+                                <div class="form-row form-add-student">
                                     <div class="col-3 mb-3">
-                                        <label class="form-label">Department:  </label>
-                                        <input type="text" name="department" class="form-control" required>
+                                        <label class="form-label">College ID:  </label>
+                                        <select name="collegeid" class="form-select">
+                                            <option selected>Choose the college ID</option>
+                                            <option value="12">12 Liberal art and sciences</option>
+                                            <option value="13">13 Engineering</option>
+                                            <option value="14">14 College of Science</option>
+                                            <option value="15">15 D’Amore-McKim School of Business</option>
+                                            <option value="16">16 Bouvé College of Health Sciences</option>
+                                            <option value="17">17 School of Law</option>
+                                            <option value="18">18 College of Professional Studies</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col col-md-9 col-12">
+                                <div class="form-row form-add-student">
+                                    <div class="col-3 mb-3">
+                                        <label class="form-label">Department ID:  </label>
+                                        <select name="department" class="form-select">
+                                            <option selected>Choose the department ID</option>
+                                            <option value="1">1 Computer Science</option>
+                                            <option value="2">2 Informatics</option>
+                                            <option value="3">3 Data Science</option>
+                                            <option value="4">4 Data Analytics</option>
+                                            <option value="5">5 Information System</option>
+                                            <option value="6">6 Quantitative Finance</option>
+                                            <option value="7">7 Softwere Engineering</option>
+                                        </select>
                                     </div>
                                 </div>
                             </div>
                 
                             <div class="col col-md-9 col-12">
-                                <div class="form-row form-add-course">
+                                <div class="form-row form-add-student">
                                     <div class="col-3 mb-3">
                                         <label class="form-label">Phone:  </label>
                                         <input type="text" name="phone" class="form-control" required>
@@ -102,25 +130,27 @@
                             </div>
 
                             <div class="col col-md-9 col-12">
-                                <div class="form-row form-add-course">
+                                <div class="form-row form-add-student">
                                     <div class="col-3 mb-3">
                                         <label class="form-label">Advisor:  </label>
-                                        <input type="text" name="advisor" class="form-control" required>
+                                        <select name="advisor" class="form-select">
+                                            <option selected>Choose the advisor</option>
+                                            <option value="8">8 Anna</option>
+                                            <option value="9">9 Cary</option>
+                                            <option value="10">10 Diane</option>
+                                            <option value="11">11 Will</option>
+                                            <option value="12">12 Zach</option>
+                                            <option value="13">13 Eli</option>
+                                            <option value="14">14 Grace</option>
+                                        </select>
                                     </div>
                                 </div>
                             </div>
 
-                            <div class="col col-md-9 col-12">
-                                <div class="form-row form-add-course">
-                                    <div class="col-3 mb-3">
-                                        <label for="img">Select image:</label>
-                                        <input type="file" id="photo" name="photo" accept="image/*">
-                                    </div>
-                                </div>
-                            </div>
+                            
 
                             <div class="col col-md-9 col-12">
-                                <div class="form-row form-add-course">
+                                <div class="form-row form-add-student">
                                     <div class="col-3 mb-3">
                                         <label class="form-label">Grade:  </label>
                                         <input type="text" name="grade" class="form-control" required>
@@ -129,7 +159,7 @@
                             </div>
 
                             <div class="col col-md-9 col-12">
-                                <div class="form-row form-add-course">
+                                <div class="form-row form-add-student">
                                     <div class="col-3 mb-3">
                                         <label class="form-label">Semester Hour:  </label>
                                         <input type="text" name="semesterhour" class="form-control" required>

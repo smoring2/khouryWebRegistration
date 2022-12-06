@@ -26,7 +26,7 @@
                                     <th>Department</th>
                                     <th>Phone #</th>
                                     <th>Advisor</th>
-                                    <th>Photo</th>
+                                    
                                     <th>Grade</th>
                                     <th>Semester</th>
                                     <th>Edit</th>
@@ -44,14 +44,7 @@
                                     <td>{{student.department.department_name}}</td>
                                     <td>{{student.phone}}</td>
                                     <td>{{student.advisor.name}}</td>
-                                    <td>
-                                        {% if student.photo == ""  %}
-                                        No Image
-                                        {% else %}
-                                        <img class="img img-fluid mb-2" height="100" width="100"
-                                            src="{{student.photo}}" alt="">
-                                        {% endif %}
-                                    </td>
+                                    
                                     <td>{{student.grade}}</td>
                                     <td>{{student.semesterhour}}</td>
                                     
