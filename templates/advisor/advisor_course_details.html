@@ -47,7 +47,7 @@
                     <p>Course id: {{data.course_id}}</p>
                     <p>Course name: {{data.course_name}}</p>
                     <p>Instructor: {{data.instructor_id}} {{data.instructor_name}}</p>
-                    <p>Meeting time: {{data.meeting_time}} {{data.meeting_day}} </p>
+                    <p>Meeting time: {{data.meeting_time}}  </p>
                     <p>Capacity: {{data.max_num_of_students}} students </p>
                     <p>Already registered students: {{data.registered_num_of_stud}}</p>
                     <p>Semester: {{data.semester}}</p>
@@ -67,7 +67,7 @@
                 </select>
                 <lable for="c-building">Building</lable>
                 <select id="c-building" class="form-select">
-                    <option value="0">Choose the room</option>
+                    <option value="0">Choose the building</option>
                     <option value="1">Ell Hal</option>
                     <option value="2">Fenway Center</option>
                     <option value="3">Forsyth Building</option>
@@ -117,7 +117,7 @@
     </div>
 </div>
 <script>
-    var dataJson = JSON.parse("{{data|safe}}");
+    // var dataJson = JSON.parse("{{data|safe}}");
     function getCourseSearchDetail() {
         window.location.href = "{% url 'search_course_details' %}" + "?advisor_id=" + {{data.advisor_id}}+"&course_id=" + document.getElementById("search-course-id").value;
     }
@@ -132,8 +132,8 @@
         console.log(url)
         fetch(url).then(function (response) {
             return response.json();
-        }).then(function (data) {
-            alert(data.message)
+        }).then(function (apiRes) {
+            alert(apiRes.message)
             location.reload()
         }).catch(function () {
             console.log("error");
@@ -143,35 +143,56 @@
     var campus_dd = document.getElementById("c-campus");
     var building_dd = document.getElementById('c-building')
     var room_dd = document.getElementById('c-room')
-    if (dataJson.campusid) {
+    var hasCampusId, hasBuildingId, hasRoomId;
+    {% if data.campusid is none %}
+    hasCampusId = null
+    {% else %}
+    hasCampusId = {{data.campusid}}
+    {% endif %}
+
+    {% if data.building_id is none %}
+    hasBuildingId = null
+    {% else %}
+    hasBuildingId = {{data.building_id}}
+    {% endif %}
+
+    {% if data.room_id is none %}
+    hasRoomId = null
+    {% else %}
+    hasRoomId = {{data.room_id}}
+    {% endif %}
+
+    if(campus_dd){
+    if (hasCampusId) {
     for (var i = 0; i < campus_dd.options.length; i++) {
-        if (campus_dd.options[i].value == dataJson.campusid) {
+        if (campus_dd.options[i].value == hasCampusId) {
             campus_dd.options[i].selected = true;
             break;
         }
     }} else{
         campus_dd.options[0].select = true;
-    }
-    if (dataJson.building_id) {
+    }}
+    if(building_dd){
+    if (hasBuildingId) {
     for (var i = 0; i < building_dd.options.length; i++) {
-        if (building_dd.options[i].value == dataJson.building_id) {
+        if (building_dd.options[i].value == hasBuildingId) {
             building_dd.options[i].selected = true;
-            buildingsAssigned = true
             break;
         }
     }}
     else {
         building_dd.options[0].select = true;
-    }
-    if (dataJson.room_id) {
+    }}
+    if(room_dd){
+    if (hasRoomId) {
     for (var i = 0; i < room_dd.options.length; i++) {
-        if (room_dd.options[i].value == dataJson.room_id) {
+        if (room_dd.options[i].value == hasRoomId) {
             room_dd.options[i].selected = true;
             break;
         }
     }} else {
         room_dd.options[0].select = true;
-    }
+    }}
 
     function addTaForCourse() {
         const course_id = {{data.course_id}}
