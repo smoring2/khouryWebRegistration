@@ -170,7 +170,7 @@ def getRegistrationInfo(request, student_id):
                                                           'input a correct course num.')
         elif isCourseFull(course_id):
             return HttpResponse('The course you registered for has reached the capacity')
-        elif getStudentCurSh(student_id, course_id):
+        elif getStudentCurSh(student_id, course_id) > getStudentMaxSh(student_id):
             return HttpResponse('You have reached the maximum semester hour courses you can register')
         elif isConflict(student_id, course_id):
             return HttpResponse('There is a time conflict on your schedule, you cannot register this course')
@@ -270,6 +270,15 @@ def getStudentCurSh(student_id, course_id):
     sh += cursor.fetchall()[0][0]
 
     return sh
+
+def getStudentMaxSh(student_id):
+    cursor = connection.cursor()
+    cursor.execute('''SELECT semesterhour FROM student WHERE nuid = %(student_id)s''',
+                   {'student_id': student_id})
+    res = cursor.fetchall()[0][0]
+    cursor.close()
+
+    return res
 
 # Get student id list.
 def getStudentIdList():
