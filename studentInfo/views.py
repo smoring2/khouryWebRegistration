@@ -7,9 +7,4 @@ cursor= connection.cursor()
 
 
 def testmysql(request):
-    myStudent = Student.objects.all()
-    context = {
-        'student_nuid': myStudent[0].nuid,
-        'student_name': myStudent[0].name,
-    }
-    return render(request, 'studentInfo.html', context)
+    return render(request, 'home.html')
