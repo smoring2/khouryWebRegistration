@@ -25,6 +25,9 @@ from studentInfo import signin_view
 urlpatterns = [
     # path('admin/', admin.site.urls),
 
+    #mainpage
+    path('', views.testmysql),
+
     #signin
     path('student/signIn', signin_view.student_login_page, name='student_login_page'),
     path('studentLoging', signin_view.student_login, name='student_login'),
@@ -34,7 +37,6 @@ urlpatterns = [
     path('adminLoging', signin_view.admin_login, name='admin_login'),
 
     #student
-    path('', views.testmysql),
     path('student/', student_views.StudentList.as_view(), name='student_list'),
     path('student/<int:pk>', student_views.StudentDetails.as_view(), name='student_profile'),
     path('student/home/<int:pk>', student_views.StudentHome.as_view(), name='student_home'),
