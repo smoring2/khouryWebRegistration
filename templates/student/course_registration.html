@@ -44,10 +44,11 @@
             <div class="bg-light rounded m-2">
                 <h4 class="border border-primary rounded p-2">Course list</h4>
                 <div class="row">
-                    <div class="col-md-2"><b> Course </b></div>
+                    <div class="col-md-1"><b> Course </b></div>
                     <div class="col-md-4"><b> Name </b></div>
                     <div class="col-md-1"><b> Instructor </b></div>
-                    <div class="col-md-1"><b> Time </b></div>
+                    <div class="col-md-1"><b> Date </b></div>
+                    <div class="col-md-2"><b> Time </b></div>
                     <div class="col-md-1"><b> Capacity </b></div>
                     <div class="col-md-1"><b> Registered </b></div>
                     <div class="col-md-1"><b> s.h. </b></div>
@@ -55,10 +56,11 @@
                 <hr style="height:2px;border-width:0;color:gray;background-color:gray">
                 {% for c in data.course_list %}
                     <div class="row">
-                        <div class="col-md-2">{{ c.course_num }}</div>
+                        <div class="col-md-1">{{ c.course_num }}</div>
                         <div class="col-md-4">{{ c.course_name }}</div>
                         <div class="col-md-1">{{ c.instructor }}</div>
-                        <div class="col-md-1">{{ c.meeting_time }}</div>
+                        <div class="col-md-1">{{ c.date }}</div>
+                        <div class="col-md-2">{{ c.meeting_time }}</div>
                         <div class="col-md-1">{{ c.capacity }}</div>
                         <div class="col-md-1">{{ c.cur_registered }}</div>
                         <div class="col-md-1">{{ c.semester_hrs }}</div>

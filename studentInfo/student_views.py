@@ -188,9 +188,10 @@ def getRegistrationInfo(request, student_id):
     for course in getAllCourseInfo():
         res['course_list'].append({'course_num': course[0], 'course_name': course[1],
                                    'instructor': getInstructorNameById(course[2]), 'meeting_time': course[3],
-                                   'capacity': course[4], 'semester': course[5],
-                                   'semester_hrs': course[6],
-                                   'cur_registered': course[7]})
+                                   'date': course[4],
+                                   'capacity': course[5], 'semester': course[6],
+                                   'semester_hrs': course[7],
+                                   'cur_registered': course[8]})
 
     res['complete_courses'] = getCompleteCoursesByNuid(nuid)
 
