@@ -43,9 +43,19 @@
         <div class="col-10">
             <div class="bg-light rounded m-2">
                 <h4 class="border border-primary rounded p-2">Pending for approval</h4>
+                <div class="row">
+                    <div class="col-md-4"><b> Course </b></div>
+                    <div class="col-md-4"><b> Name </b></div>
+                    <div class="col-md-4"><b> Status </b></div>
+                    <hr style="height:2px;border-width:0;color:gray;background-color:gray">
+                </div>
                 {% for c in data.pending_list %}
-                <p>{{c}}</p>
-                    <hr style="width:50%;text-align:left;margin-left:0">
+                <div class="row">
+                    <div class="col-md-4"><font size="1">{{c.course_num}} </font></div>
+                    <div class="col-md-4"><font size="1">{{c.course_name}} </font></div>
+                    <div class="col-md-4"><font size="1">{{c.status}} </font></div>
+                </div>
+                <hr style="height:2px;border-width:0;color:gray;background-color:gray">
                 {% endfor %}
             </div>
 

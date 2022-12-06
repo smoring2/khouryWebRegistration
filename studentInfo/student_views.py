@@ -40,9 +40,8 @@ def getStudentNotification(request, student_id):
     }
 
     for r in getPendingApprovals(student_id):
-        res['pending_list'].append(str(r) + "            " + getNameByCourseNum(r))
-    if len(res['pending_list']) == 0:
-        res['pending_list'] = ['No courses']
+        res['pending_list'].append({'course_num': r, 'course_name': getNameByCourseNum(r),
+                                    'status': 'Pending for approval'})
 
     context = {
         "data": res
@@ -52,11 +51,13 @@ def getStudentNotification(request, student_id):
 
 
 def dropCourse(request, student_id):
+    removeRejFromRegistration()
     cursor = connection.cursor()
     course_currently_taking = getCourseCurrentlyTakingOrPending(student_id)
     if request.method == 'POST':
         nuid = student_id
         course_id = int(request.POST['course_number'])
+
         advisor_id = getAdvisorByStudentId(student_id)
 
         cursor.execute('''SELECT * from registration''')
@@ -78,8 +79,9 @@ def dropCourse(request, student_id):
     }
 
     for course in range(len(course_currently_taking)):
-        res['course_taking'].append(str(course_currently_taking[course]) + ':     ' +
-                                    getNameByCourseNum(course_currently_taking[course]))
+        res['course_taking'].append({'course_num': str(course_currently_taking[course]), 'course_name':
+                                    getNameByCourseNum(course_currently_taking[course]),
+                                    'status': getStudentCourseStatus(student_id, course_currently_taking[course])})
 
     context = {
         "data": res
@@ -311,13 +313,35 @@ def updateAllStudentGpa():
 
 
 # Registration Table
+# Remove status equals 'rejected' rows form registration table.
+def removeRejFromRegistration():
+    cursor = connection.cursor()
+    cursor.execute('''DELETE FROM registration WHERE status = 'rejected' ''')
+
+
+# The methods takes a course numer, student id, return the status of the student for this course.
+def getStudentCourseStatus(student_id, course_id):
+    cursor = connection.cursor()
+    cursor.execute('''SELECT status FROM registration WHERE nuid = %(student_id)s AND
+    course_id = %(course_id)s''', {'student_id': student_id, 'course_id': course_id})
+    res = cursor.fetchall()
+    cursor.close()
+
+    if not res:
+        return 'Null'
+    elif res[0][0] == 'pending':
+        return 'Pending for approval'
+
+    return res[0][0]
+
+
 # This method takes student nuid as input, return a course number list that contain courses the student currently
 # taking or pending for advisor to approve.
 def getCourseCurrentlyTakingOrPending(student_id):
     cursor = connection.cursor()
     res = []
-    cursor.execute('''SELECT course_id FROM registration where nuid = %(student_id)s AND status != 'completed'
-    ''', {'student_id': student_id})
+    cursor.execute('''SELECT course_id FROM registration where nuid = %(student_id)s AND (status = 'approved' OR
+    status = 'pending') ''', {'student_id': student_id})
     for c in cursor.fetchall():
         res.append(c[0])
     cursor.close()
