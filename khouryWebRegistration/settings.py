@@ -39,11 +39,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework',
     'studentInfo',
 
 #     for rest api
-    'rest_framework',
-     'corsheaders',
+    
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
@@ -88,15 +89,27 @@ pymysql.install_as_MySQLdb()
 
 # [START db_setup]
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql', 
-        'NAME': 'project',
-        'HOST': '34.70.34.212',
-        'USER': 'cs5200team12',
-        'PASSWORD': 'a12345678'
-    } 
-}
+if os.getenv('GAE_APPLICATION', None):
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql', 
+            'HOST': '/cloudsql/db-group12-365720:us-central1:cs5200team12',
+            'USER': 'cs5200team12',
+            'PASSWORD': 'a12345678',
+            'NAME': 'project',
+        } 
+    }
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql', 
+            'NAME': 'project',
+            'USER': 'cs5200team12',
+            'PASSWORD': 'a12345678',
+            'HOST': '34.70.34.212',
+            'PORT': '3306',
+        } 
+    }
 
 # [END db_setup]
 
@@ -135,6 +148,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
+STATIC_ROOT = 'static'
 STATIC_URL = 'static/'
 
 # Default primary key field type

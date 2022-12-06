@@ -64,22 +64,15 @@ def add_student(request):
             bdate = student_form.cleaned_data.get('bdate')
             campusid = student_form.cleaned_data.get('campusid')
             collegeid = student_form.cleaned_data.get('collegeid')
-            print(collegeid)
             department = student_form.cleaned_data.get('department')
             phone = student_form.cleaned_data.get('phone')
             advisor = student_form.cleaned_data.get('advisor')
-            photo = request.FILES['photo']
-            fs = FileSystemStorage()
-            filename = fs.save(photo.name, photo)
-            photo_url = fs.url(filename)
-            print(photo_url)
             grade = student_form.cleaned_data.get('grade')
             semesterhour = student_form.cleaned_data.get('semesterhour')
             password = student_form.cleaned_data.get('password')
             try:
                 user = Student.objects.create(nuid=nuid, name=name, 
-                    email=email, bdate=bdate, campusid=campusid, collegeid=collegeid, department=department, phone=phone, advisor=advisor, photo=photo_url, grade=grade, semesterhour=semesterhour, password=password)
-                print(photo)
+                    email=email, bdate=bdate, campusid=campusid, collegeid=collegeid, department=department, phone=phone, advisor=advisor, grade=grade, semesterhour=semesterhour, password=password)
                 user.save()
                 messages.success(request, "Successfully Added")
                 return redirect(reverse('add_student'))
@@ -99,27 +92,40 @@ def add_course(request):
     if request.method == 'POST':
         if form.is_valid():
             course_id = form.cleaned_data.get('course_id')
+            course_name = form.cleaned_data.get('course_name')
             instructor = form.cleaned_data.get('instructor')
             meeting_time = form.cleaned_data.get('meeting_time')
             max_num_of_students = form.cleaned_data.get('max_num_of_students')
             semester = form.cleaned_data.get('semester')
             semester_hrs = form.cleaned_data.get('semester_hrs')
             registered_num_of_stud = form.cleaned_data.get('registered_num_of_stud')
+            department = form.cleaned_data.get('department')
+            campusid = form.cleaned_data.get('campusid')
+            building = form.cleaned_data.get('building')
+            room = form.cleaned_data.get('room')
+            date = form.cleaned_data.get('date')
             try:
                 course = Course()
                 course.course_id = course_id
+                course.course_name = course_name
                 course.instructor = instructor
                 course.meeting_time = meeting_time
                 course.max_num_of_students = max_num_of_students
                 course.semester = semester
                 course.semester_hrs = semester_hrs
                 course.registered_num_of_stud = registered_num_of_stud
+                course.department = department
+                course.campusid = campusid
+                course.building = building
+                course.room = room
+                course.date = date
                 course.save()
                 messages.success(request, "Successfully Added")
                 return redirect(reverse('add_course'))
             except:
                 messages.error(request, "Could Not Add course")
         else:
+            print(form.errors.as_data())
             messages.error(request, "Could Not Add")
     return render(request, 'admin_template/add_course_template.html', context)
 
@@ -207,7 +213,6 @@ def edit_student(request, nuid):
             department = form.cleaned_data.get('department')
             phone = form.cleaned_data.get('phone')
             advisor = form.cleaned_data.get('advisor')
-            photo = request.FILES.get('photo') or None
             grade = form.cleaned_data.get('grade')
             semesterhour = form.cleaned_data.get('semesterhour')
             password = form.cleaned_data.get('password')
@@ -222,11 +227,6 @@ def edit_student(request, nuid):
                 user.department = department
                 user.phone = phone
                 user.advisor = advisor
-                if photo != None:
-                    fs = FileSystemStorage()
-                    filename = fs.save(photo.name, photo)
-                    photo_url = fs.url(filename)
-                    user.photo = photo_url
                 user.grade = grade
                 user.semesterhour = semesterhour
                 if password != None:
@@ -254,21 +254,33 @@ def edit_course(request, course_id):
     if request.method == 'POST':
         if form.is_valid():
             course_id = form.cleaned_data.get('course_id')
+            course_name = form.cleaned_data.get('course_name')
             instructor = form.cleaned_data.get('instructor')
             meeting_time = form.cleaned_data.get('meeting_time')
             max_num_of_students = form.cleaned_data.get('max_num_of_students')
             semester = form.cleaned_data.get('semester')
             semester_hrs = form.cleaned_data.get('semester_hrs')
             registered_num_of_stud = form.cleaned_data.get('registered_num_of_stud')
+            department = form.cleaned_data.get('department')
+            campusid = form.cleaned_data.get('campusid')
+            building = form.cleaned_data.get('building')
+            room = form.cleaned_data.get('room')
+            date = form.cleaned_data.get('date')
             try:
                 course = Course.objects.get(course_id=course_id)
                 course.course_id = course_id
+                course.course_name = course_name
                 course.instructor = instructor
                 course.meeting_time = meeting_time
                 course.max_num_of_students = max_num_of_students
                 course.semester = semester
                 course.semester_hrs = semester_hrs
                 course.registered_num_of_stud = registered_num_of_stud
+                course.department = department
+                course.campusid = campusid
+                course.building = building
+                course.room = room
+                course.date = date
                 course.save()
                 messages.success(request, "Successfully Updated")
             except:

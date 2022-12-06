@@ -21,7 +21,16 @@
                                 <div class="form-row form-add-course">
                                     <div class="col-3 mb-3">
                                         <label class="form-label">Course ID:  </label>
-                                        <input type="number" name="ecourse_id" class="form-control" required>
+                                        <input type="number" name="course_id" class="form-control" required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col col-md-9 col-12">
+                                <div class="form-row form-add-course">
+                                    <div class="col-3 mb-3">
+                                        <label class="form-label">Course Name:  </label>
+                                        <input type="text" name="course_name" class="form-control">
                                     </div>
                                 </div>
                             </div>
@@ -30,7 +39,15 @@
                                 <div class="form-row form-add-course">
                                     <div class="col-3 mb-3">
                                         <label class="form-label">Instructor:  </label>
-                                        <input type="time" name="instructor" class="form-control" required>
+                                        <select name="instructor" class="form-select">
+                                            <option value="lee">Lee</option>
+                                            <option value="don">Don</option>
+                                            <option value="alex">alex</option>
+                                            <option value="peggy">Peggy</option>
+                                            <option value="betty">Betty</option>
+                                            <option value="peter">peter</option>
+                                            <option value="alicia">alicia</option>
+                                        </select>
                                     </div>
                                 </div>
                             </div>
@@ -83,15 +100,86 @@
                             <div class="col col-md-9 col-12">
                                 <div class="form-row form-add-course">
                                     <div class="col-3 mb-3">
-                                        <label class="form-label">Department:  </label>
-                                        <select name="department_name" name="department_name">
-                                            <option value="computerscience">Computer Science</option>
-                                            <option value="informatics">Informatics</option>
-                                            <option value="datascience">Data Science</option>
-                                            <option value="dataanalytics">Data Analytics</option>
-                                            <option value="informationsystem">Information System</option>
-                                            <option value="quantitativefinance">Quantitative Finance</option>
-                                            <option value="softwereengineering">Softwere Engineering</option>
+                                        <label class="form-label">Department ID:  </label>
+                                        <select name="department" class="form-select">
+                                            <option selected>Choose the department ID</option>
+                                            <option value="computerscience">1 Computer Science</option>
+                                            <option value="informatics">2 Informatics</option>
+                                            <option value="datascience">3 Data Science</option>
+                                            <option value="dataanalytics">4 Data Analytics</option>
+                                            <option value="informationsystem">5 Information System</option>
+                                            <option value="quantitativefinance">6 Quantitative Finance</option>
+                                            <option value="softwereengineering">7 Softwere Engineering</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col col-md-9 col-12">
+                                <div class="form-row form-edit-student">
+                                    <div class="col-3 mb-3">
+                                        <label class="form-label">Campus ID:  </label>
+                                        <select name="campusid" class="form-select">
+                                            <option selected>Choose the campus ID</option>
+                                            <option value="1">1 Silicon Valley</option>
+                                            <option value="2">2 Seattle</option>
+                                            <option value="3">3 Boston</option>
+                                            <option value="4">4 Charlotte</option>
+                                            <option value="5">5 San Francisco</option>
+                                            <option value="6">6 Portland</option>
+                                            <option value="7">7 Vancouver</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col col-md-9 col-12">
+                                <div class="form-row form-edit-student">
+                                    <div class="col-3 mb-3">
+                                        <label class="form-label">Building ID:  </label>
+                                        <select name="building" class="form-select">
+                                            <option selected>Choose the building ID</option>
+                                            <option value="1">1 Ell Hall</option>
+                                            <option value="2">2 Fenway Center</option>
+                                            <option value="3">3 Forsyth Building</option>
+                                            <option value="4">4 Egan Research Center</option>
+                                            <option value="5">5 Dockser Hall</option>
+                                            <option value="6">6 Cullinane Hall</option>
+                                            <option value="7">7 Cushing Hall</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col col-md-9 col-12">
+                                <div class="form-row form-edit-student">
+                                    <div class="col-3 mb-3">
+                                        <label class="form-label">Room ID:  </label>
+                                        <select name="room" class="form-select">
+                                            <option selected>Choose the room ID</option>
+                                            <option value="1">1</option>
+                                            <option value="2">2</option>
+                                            <option value="3">3</option>
+                                            <option value="4">4</option>
+                                            <option value="5">5</option>
+                                            <option value="6">6</option>
+                                            <option value="7">7</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col col-md-9 col-12">
+                                <div class="form-row form-add-course">
+                                    <div class="col-3 mb-3">
+                                        <label class="form-label">Date</label>
+                                        <select name="date" class="form-select">
+                                            <option selected>Choose the Date</option>
+                                            <option value="1">M</option>
+                                            <option value="2">T</option>
+                                            <option value="3">W</option>
+                                            <option value="4">Th</option>
+                                            <option value="5">F</option>
                                         </select>
                                     </div>
                                 </div>

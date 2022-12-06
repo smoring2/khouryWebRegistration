@@ -18,27 +18,39 @@
                             <thead>
                                 <tr>
                                     <th>Course ID</th>
+                                    <th>Course Name</th>
                                     <th>Instructor</th>
                                     <th>Meeting Time</th>
                                     <th>Capacity</th>
                                     <th>Semester</th>
                                     <th>Semester Hours</th>
-                                    <th>Registered no. of Students</th>
-                                    
+                                    <th>Registered No. of Students</th>
+                                    <th>Department</th>
+                                    <th>Campus</th>
+                                    <th>Building</th>
+                                    <th>Room</th>
+                                    <th>Date</th>
+                                    <th>Edit</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for course in courses %}
                                 <tr>
                                     <td>{{course.course_id}}</td>
+                                    <td>{{course.course_name}}</td>
                                     <td>{{course.instructor.name}}</td>
                                     <td>{{course.meeting_time}}</td>
                                     <td>{{course.max_num_of_students}}</td>
                                     <td>{{course.semester}}</td>
                                     <td>{{course.semester_hrs}}</td>
                                     <td>{{course.registered_num_of_stud}}</td>
+                                    <td>{{course.department.department_name}}</td>
+                                    <td>{{course.campusid.campus_name}}</td>
+                                    <td>{{course.building.building_name}}</td>
+                                    <td>{{course.room.room_id}}</td>
+                                    <td>{{course.date}}</td>
                                     <td>
-                                        <a href="{% url 'edit_course' course.course_id %}" class="btn btn-primary">Edit</a> -
+                                        <a href="{% url 'edit_course' course.course_id %}" class="btn btn-primary">Edit</a>
                                         <a href="{% url 'delete_course' course.course_id %}" class="btn btn-danger">Delete</a> 
                                     </td>
                                 </tr>

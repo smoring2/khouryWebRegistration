@@ -30,16 +30,16 @@
                     <form method="post" enctype="multipart/form-data">
                         <div class="card-body">
                             
-                            <div class="col col-md-9 col-12 form-add-course">
-                                <div class="form-row form-add-course">
+                            <div class="col col-md-9 col-12 form-add-advisor">
+                                <div class="form-row form-add-advisor">
                                     <div class="col-3 mb-3">
                                         <label class="form-label">Employee ID:  </label>
                                         <input type="text" name="employee_id" class="form-control" required>
                                     </div>
                                 </div>
                             </div>
-                            <div class="col col-md-9 col-12 form-add-course">
-                                <div class="form-row form-add-course">
+                            <div class="col col-md-9 col-12 form-add-advisor">
+                                <div class="form-row form-add-advisor">
                                     <div class="col-3 mb-3">
                                         <label class="form-label">Name:  </label>
                                         <input type="text" name="name" class="form-control" required>
@@ -48,7 +48,7 @@
                             </div>
                 
                             <div class="col col-md-9 col-12">
-                                <div class="form-row form-add-course">
+                                <div class="form-row form-add-advisor">
                                     <div class="col-3 mb-3">
                                         <label class="form-label">Email:  </label>
                                         <input type="text" name="email" class="form-control" required>
@@ -57,7 +57,7 @@
                             </div>
 
                             <div class="col col-md-9 col-12">
-                                <div class="form-row form-add-course">
+                                <div class="form-row form-add-advisor">
                                     <div class="col-3 mb-3">
                                         <label class="form-label">Phone:  </label>
                                         <input type="text" name="phone" class="form-control" required>
@@ -66,10 +66,19 @@
                             </div>
 
                             <div class="col col-md-9 col-12">
-                                <div class="form-row form-add-course">
+                                <div class="form-row form-add-advisor">
                                     <div class="col-3 mb-3">
-                                        <label class="form-label">Department:  </label>
-                                        <input type="text" name="department" class="form-control" required>
+                                        <label class="form-label">Department ID:  </label>
+                                        <select name="department" class="form-select">
+                                            <option selected>Choose the department ID</option>
+                                            <option value="1">1 Computer Science</option>
+                                            <option value="2">2 Informatics</option>
+                                            <option value="3">3 Data Science</option>
+                                            <option value="4">4 Data Analytics</option>
+                                            <option value="5">5 Information System</option>
+                                            <option value="6">6 Quantitative Finance</option>
+                                            <option value="7">7 Softwere Engineering</option>
+                                        </select>
                                     </div>
                                 </div>
                             </div>

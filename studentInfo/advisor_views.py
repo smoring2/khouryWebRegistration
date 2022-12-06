@@ -102,6 +102,8 @@ SQL_ADVISOR_STU_GPA_BETWEEN = '''select * from student  where advisor = %(employ
 def getAdvisorStatistics(request, advisor_id):
     res = {}
     advisor_info = getAdvisorInfoById(advisor_id)
+    print(advisor_info)
+    res['advisor_id'] = advisor_id
     res['advisor_name'] = advisor_info[0][1]
     cursor= connection.cursor()
     val = {'employee_id': int(advisor_id)}
@@ -121,7 +123,6 @@ def getAdvisorStatistics(request, advisor_id):
     stu_gpa_between = cursor.fetchall()
 
     if stu_info:
-        res['advisor_id'] = advisor_id
         res['numOfStus'] = len(stu_info)
         res['avg_gpa'] = stu_avg_gpa[0][0]
         res['max_gpa'] = stu_max_gpa[0][0]
