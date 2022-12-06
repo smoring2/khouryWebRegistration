@@ -61,6 +61,7 @@ def rejectPendingRequest(request):
 SQL_REGISTRATION_REMOVE = '''update registration set status = 'rejected'
 where nuid= %(nuid)s and course_id = %(course_id)s and advisor_id = %(advisor_id)s'''
 SQL_APPROVED_REJECTION = '''delete from registration where nuid= %(nuid)s and advisor_id = %(advisor_id)s and course_id = %(course_id)s and status = 'approved' '''
+SQL_REGISTERED_NUM_MINUS = '''update course set registered_num_of_stud = registered_num_of_stud - 1 where course_id = %(course_id)s '''
 @api_view(['GET'])
 def removeOneApprovedCourse(request):
     nuid = request.query_params.get('nuid')
@@ -68,12 +69,15 @@ def removeOneApprovedCourse(request):
     advisor_id = request.query_params.get('advisor_id')
     val = {'nuid': int(nuid), 'course_id': int(course_id), 'advisor_id': int(advisor_id)}
     cursor= connection.cursor()
-    message = "succeed"
+    message = ""
     try:
         cursor.execute(SQL_APPROVED_REJECTION, val)
         counts = cursor.rowcount
         if counts == 0:
             message = NO_PERMISSION_ALERT
+        else:
+            cursor.execute(SQL_REGISTERED_NUM_MINUS, val)
+            message = SUCCEED_ALERT
     except:
         message = ERROR_ALERT
     cursor.close()
