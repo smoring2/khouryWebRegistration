@@ -4,15 +4,6 @@ from django.views.generic import ListView, DetailView
 from django.db import connection
 from django.http import HttpResponse
 
-
-def testmysql(request):
-    myStudent = Student.objects.all()
-    context = {
-        'student_name': myStudent[0].name,
-    }
-    return render(request, 'studentInfo.html', context)
-
-
 # StudentList class should be deleted later on.
 class StudentList(ListView):
     template_name = 'student/student_list.html'

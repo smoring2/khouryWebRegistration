@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<!DOCTYPE html>
+<html>
+<title>Home</title>
+<head>
+    <style>
+        #topBlackBar {
+            border-top: 50px solid #000;
+        }
+    </style>
+</head>
+<body>
+<div id="topBlackBar"/>
+</body>
+</html>
+<html lang="en">
+<head>
+
+<html lang="en">
+<head>
+ <title>All roles</title>
+</head>
+<table>
+ <thead>
+  <tr>
+   <th>Role</th>
+   <th>Log In</th>
+  </tr>
+ </thead>
+ <tbody>
+
+  <tr>
+   <td> Student </td>
+   <td>
+    <a href="{% url "student_login_page" %}">Login</a>
+   </td>
+  </tr>
+
+  <tr>
+    <td> Advisor </td>
+    <td>
+     <a href="{% url "advisor_login_page" %}">Login</a>
+    </td>
+   </tr>
+
+   <tr>
+    <td> Admin </td>
+    <td>
+     <a href="{% url "admin_login_page" %}">Login</a>
+    </td>
+   </tr>
+  </tbody>
+</table>

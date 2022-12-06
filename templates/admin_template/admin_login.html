@@ -69,13 +69,13 @@
 <main class="form-signin">
     <p>Welcome to Course Registration System!</p>
 
-    <form action="/admin/log_in" method="post">
+    <form action="/adminLoging" method="post"> {% csrf_token %}
         <h1 class="h3 mb-3 fw-normal">Please sign in</h1>
 
         <!-- <p class="text-danger">{{ error}}</p> -->
         <div class="form-floating">
-            <input type="username" class="form-control" name="username" id="username" placeholder="Username">
-            <label for="floatingInput">Username</label>
+            <input type="username" class="form-control" name="username" id="username" placeholder="ID">
+            <label for="floatingInput">ID</label>
         </div>
         <div class="form-floating">
             <input type="password" class="form-control" name="password" id="password" placeholder="Password">
@@ -94,16 +94,25 @@
     </form>
 </main>
 
-<script type="text/javascript">
+{% for message in messages %}
+    
+    <div class="alert alert-success">
+        <a class="close" href="#" data-dismiss="alert">×</a>
+           {{ message }}
+    </div>
+
+{% endfor %}
+
+<!-- <script type="text/javascript">
     $('.log-in').click(function () {
         let csrftoken = '{{ csrf_token }}'
-        var username = $("#userna\e").val();
+        var username = $("#username").val();
         var password = $("#password").val();
         $.ajax(
             {
                 type: "POST",
                 headers: {'X-CSRFToken': csrftoken},
-                url: "/admin/log_in",
+                url: "/admin_Login",
                 data: {
                     username: username,
                     password: password
@@ -120,7 +129,7 @@
                 },
             })
     });
-</script>
+</script> -->
 
 </body>
 </html>
