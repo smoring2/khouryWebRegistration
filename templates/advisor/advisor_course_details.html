@@ -39,6 +39,9 @@
                 <button type="button" class="btn btn-outline-primary" onclick="getCourseSearchDetail()">search</button>
             </div>
             <div class="mb-3">
+                {% if data.course_name is null %}
+                <p>No result found for {{data.course_id}}</p>
+                {% else %}
                 <div class="bg-light rounded mb-3">
                     <h3 class="border border-primary rounded pb-2">Course: {{data.course_name}}</h3>
                     <p>Course id: {{data.course_id}}</p>
@@ -108,14 +111,15 @@
                 </div>
                 {% endfor %}
             </div>
+            {% endif %}
 
         </div>
     </div>
 </div>
 <script>
+    var dataJson = JSON.parse("{{data|safe}}");
     function getCourseSearchDetail() {
-        const course_id = document.getElementById("search-course-id").value;
-        window.location.href = "{% url 'search_course_details' %}" + "?advisor_id=" + {{data.advisor_id}}+"&course_id=" + course_id;
+        window.location.href = "{% url 'search_course_details' %}" + "?advisor_id=" + {{data.advisor_id}}+"&course_id=" + document.getElementById("search-course-id").value;
     }
 
     function saveRoom() {
@@ -139,39 +143,33 @@
     var campus_dd = document.getElementById("c-campus");
     var building_dd = document.getElementById('c-building')
     var room_dd = document.getElementById('c-room')
-    var campusAssigned = false;
+    if (dataJson.campusid) {
     for (var i = 0; i < campus_dd.options.length; i++) {
-        if (campus_dd.options[i].value == {{data.campusid}}) {
+        if (campus_dd.options[i].value == dataJson.campusid) {
             campus_dd.options[i].selected = true;
-            campusAssigned = true
             break;
         }
-    }
-    if (!campusAssigned) {
+    }} else{
         campus_dd.options[0].select = true;
     }
-
-    var buildingsAssigned = false;
+    if (dataJson.building_id) {
     for (var i = 0; i < building_dd.options.length; i++) {
-        if (building_dd.options[i].value == {{data.building_id}}) {
+        if (building_dd.options[i].value == dataJson.building_id) {
             building_dd.options[i].selected = true;
             buildingsAssigned = true
             break;
         }
-    }
-    if (!buildingsAssigned) {
+    }}
+    else {
         building_dd.options[0].select = true;
     }
-
-    var roomAssigned = false;
+    if (dataJson.room_id) {
     for (var i = 0; i < room_dd.options.length; i++) {
-        if (room_dd.options[i].value == {{data.room_id}}) {
+        if (room_dd.options[i].value == dataJson.room_id) {
             room_dd.options[i].selected = true;
-            roomAssigned = true
             break;
         }
-    }
-    if (!roomAssigned) {
+    }} else {
         room_dd.options[0].select = true;
     }
 

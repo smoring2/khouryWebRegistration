@@ -107,6 +107,9 @@
                             document.getElementById('new-password').value)">Submit</button>
             </form>
             <h3 class="mt-5">All students</h3>
+            {% if data.students|length == 0 %}
+            <p>No students</p>
+            {% else %}
             {% for s in data.students %}
             <div class="m-2 p-2 bg-light rounded mb-3">
                 <h4 class="border border-primary rounded p-2">Name: {{s.1}}</h4>
@@ -122,6 +125,7 @@
             </div>
 
             {% endfor %}
+            {% endif %}
         </div>
     </div>
 </div>

@@ -37,6 +37,9 @@
                 <button type="button" class="btn btn-outline-primary" onclick="setGetParameter()">search</button>
             </div>
             <div class="m-2 p-2 bg-light rounded mb-3">
+                {% if data.student_name == null %}
+                <p>No student with nuid {{data.nuid}}</p>
+                {% else %}
                 <h4 class="border border-primary rounded p-2">Name: {{data.student_name}}</h4>
                 <p>NUID: {{data.nuid}}</p>
                 <p>Semester hour: {{data.student_hours}}</p>
@@ -96,6 +99,7 @@
                 {% endfor %}
             </div>
         </div>
+            {% endif %}
     </div>
 </div>
 <script>
