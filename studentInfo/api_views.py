@@ -5,9 +5,11 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 
 from django.db import connection
-
+SQL_COURSE_ADD_NUM = '''update course set registered_num_of_stud = registered_num_of_stud + 1 where course_id = %(course_id)s '''
+SQL_COURSE_INFO = '''select * from course where course_id = %(course_id)s '''
 SQL_REGISTRATION_APPROVAL = '''update registration set status = 'approved'
 where nuid = %(nuid)s and status = 'pending' and advisor_id = %(advisor_id)s '''
+SQL_REGISTRATION_PENDING_LIST = '''select * from registration where nuid = %(nuid)s and status = 'pending' and advisor_id = %(advisor_id)s'''
 @api_view(['GET'])
 def approvePendingRequest(request):
     print("approvePendingRequest")
@@ -82,15 +84,31 @@ def addOneApprovedCourse(request):
     try:
         cursor.execute(SQL_REGISTRATION_INFO, val)
         registration_info = cursor.fetchall()
-        if registration_info:
-            registration_status = registration_info[0][4]
-            if registration_status == 'pending'  or registration_status == 'rejected':
-                 cursor.execute(SQL_REGISTRATION_ADD, val)
-            else:
-                message = "Student already has taken this course"
+        print('registration_info')
+        if len(registration_info) > 0 and (registration_info[0][4] == 'completed' or registration_info[0][4] == 'failed'):
+            message = "Student already has taken this course"
+            print(message)
         else:
-            cursor.execute(SQL_REGISTRATION_INSERT, val)
-    except:
+            print(val)
+            print(SQL_COURSE_INFO)
+            cursor.execute(SQL_COURSE_INFO, val)
+            c_info = cursor.fetchall()
+            print(c_info)
+            if c_info:
+                print(c_info[0][4])
+                print(c_info[0][7])
+                max_num_of_stus = int(c_info[0][4])
+                reg_num_of_stus = int(c_info[0][7])
+                if max_num_of_stus > reg_num_of_stus:
+                    if registration_info:
+                        cursor.execute(SQL_REGISTRATION_ADD, val)
+                    else:
+                        cursor.execute(SQL_REGISTRATION_INSERT, val)
+                    cursor.execute(SQL_COURSE_ADD_NUM, val)
+                else:
+                    message="This course is full!"
+    except Exception as e:
+        print(e)
         message = "No permssion\nThis is not your student! "
     cursor.close()
     return JsonResponse({'message': message}, safe=False)
