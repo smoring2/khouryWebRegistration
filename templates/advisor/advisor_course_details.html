@@ -40,11 +40,11 @@
             </div>
             <div class="mb-3">
                 <div class="bg-light rounded mb-3">
-                    <h3 class="border border-primary rounded pb-2">Course: {{c.1}}</h3>
+                    <h3 class="border border-primary rounded pb-2">Course: {{data.course_name}}</h3>
                     <p>Course id: {{data.course_id}}</p>
                     <p>Course name: {{data.course_name}}</p>
                     <p>Instructor: {{data.instructor_id}} {{data.instructor_name}}</p>
-                    <p>Meeting time: {{data.meeting_time}} </p>
+                    <p>Meeting time: {{data.meeting_time}} {{data.meeting_day}} </p>
                     <p>Capacity: {{data.max_num_of_students}} students </p>
                     <p>Already registered students: {{data.registered_num_of_stud}}</p>
                     <p>Semester: {{data.semester}}</p>
@@ -64,6 +64,7 @@
                 </select>
                 <lable for="c-building">Building</lable>
                 <select id="c-building" class="form-select">
+                    <option value="0">Choose the room</option>
                     <option value="1">Ell Hal</option>
                     <option value="2">Fenway Center</option>
                     <option value="3">Forsyth Building</option>
@@ -74,7 +75,7 @@
                 </select>
                 <lable for="c-room">Room</lable>
                 <select id="c-room" class="form-select">
-                    <option selected>Choose the room</option>
+                    <option value="0">Choose the room</option>
                     <option value="1">1</option>
                     <option value="2">2</option>
                     <option value="3">3</option>
