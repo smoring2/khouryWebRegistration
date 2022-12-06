@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from .models import Student
+from .models import *
 from django.views.generic import ListView, DetailView
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.db import connection

@@ -19,10 +19,20 @@ from studentInfo import views
 from studentInfo import admin_view
 from studentInfo import advisor_views
 from studentInfo import student_views
+from studentInfo import signin_view
 
 
 urlpatterns = [
     # path('admin/', admin.site.urls),
+
+    #signin
+    path('student/signIn', signin_view.student_login_page, name='student_login_page'),
+    path('studentLoging', signin_view.student_login, name='student_login'),
+    path('advisor/signIn', signin_view.advisor_login_page, name='advisor_login_page'),
+    path('advisorLoging', signin_view.advisor_login, name='advisor_login'),
+    path('admin/signIn', signin_view.admin_login_page, name='admin_login_page'),
+    path('adminLoging', signin_view.admin_login, name='admin_login'),
+
     #student
     path('', views.testmysql),
     path('student/', student_views.StudentList.as_view(), name='student_list'),
