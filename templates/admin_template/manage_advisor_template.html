@@ -22,7 +22,7 @@
                                     <th>Email</th>
                                     <th>Phone</th>
                                     <th>Department</th>
-                                    <!-- <th>Edit</th> -->
+                                    <th>Edit</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -36,6 +36,7 @@
                                     
                                     <td>
                                         <a href="{% url 'edit_advisor' advisor.employee_id %}" class="btn btn-primary">Edit</a>
+                                        
                                         <a href="{% url 'delete_advisor' advisor.employee_id %}" class="btn btn-danger">Delete</a>
                                     
                                     </td>
