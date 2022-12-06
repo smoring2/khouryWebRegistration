@@ -139,6 +139,7 @@ class Course(models.Model):
     course_name = models.CharField(blank=True, null=True, max_length=100)
     instructor = models.ForeignKey('Instructor', models.DO_NOTHING, blank=True, null=True)
     meeting_time = models.TimeField(blank=True, null=True)
+    date = models.CharField(max_length=2)
     max_num_of_students = models.IntegerField(blank=True, null=True)
     semester = models.IntegerField(blank=True, null=True)
     semester_hrs = models.IntegerField(blank=True, null=True)
