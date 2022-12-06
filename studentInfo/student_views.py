@@ -168,10 +168,10 @@ def getRegistrationInfo(request, student_id):
         # Invalid case 2: The nuid student input is not his/ her own.
         elif nuid != student_id:
             return HttpResponse('You cannot help others to register courses.')
-        elif not isValidAdvisorId(advisor_list, advisor_id):
-            return HttpResponse('Please re-enter your advisor id.')
         elif isCourseFull(course_id):
             return HttpResponse('The course you registered for has reached the capacity')
+        elif isConflict(student_id, course_id):
+            return HttpResponse('There is a time conflict on your schedule, you cannot register this course')
         else:
             Registration.objects.create(nuid=nuid, course_id=course_id, advisor_id=advisor_id, grade=None,
                                         status='pending')
@@ -187,11 +187,11 @@ def getRegistrationInfo(request, student_id):
 
     for course in getAllCourseInfo():
         res['course_list'].append({'course_num': course[0], 'course_name': course[1],
-                                   'instructor': getInstructorNameById(course[2]), 'meeting_time': course[3],
-                                   'date': course[4],
-                                   'capacity': course[5], 'semester': course[6],
-                                   'semester_hrs': course[7],
-                                   'cur_registered': course[8]})
+                                   'instructor': getInstructorNameById(course[2]), 'meeting_time': str(course[3]),
+                                   'date': course[12],
+                                   'capacity': course[4], 'semester': course[5],
+                                   'semester_hrs': course[6],
+                                   'cur_registered': course[7]})
 
     res['complete_courses'] = getCompleteCoursesByNuid(nuid)
 
@@ -396,6 +396,20 @@ def getAdvisorByStudentId(student_id):
 
 
 # Course Table
+# Get course time by course id.
+def getCourseTime(course_id):
+    res = []
+    cursor = connection.cursor()
+    cursor.execute('''SELECT meeting_time FROM course WHERE course_id = %(course_id)s''', {'course_id': course_id})
+    res.append(str(cursor.fetchall()[0][0]))
+    cursor.execute('''SELECT date FROM course WHERE course_id = %(course_id)s''', {'course_id': course_id})
+    if not cursor.fetchall():
+        res.append(None)
+    else:
+        res.append(str(cursor.fetchall()[0][0]))
+    cursor.close()
+
+    return res
 # The method takes course id as input, return if the course has reached it's capacity.
 def isCourseFull(course_id):
     cursor = connection.cursor()
@@ -451,3 +465,35 @@ def getInstructorNameById(instructor_id):
         return res[0][0]
 
     return ""
+
+
+# Util Library
+def timeConversion(date, time):
+    date_map = {'M': 1, 'T': 2, 'W': 3, 'Th': 4, 'F': 5, 'S': 6, 'S': 7}
+    # Convert to seconds.
+    one_day = 24 * 60
+    hour = int(time[0 : 2])
+    min = int(time[3 : 5])
+    time_to_min = one_day - 1 * (date_map[date] - 1) + hour * 60 + min
+
+    return time_to_min
+
+
+def isConflict(student_id, course_id):
+    course_time = getCourseTime(course_id)
+    if course_time[1] == None:
+        return False
+
+    abs_course_time = timeConversion(course_time[1], course_time[0])
+    reg_courses_time_interval = []
+
+    for interval in getAllCourseInfo():
+        if interval[0] == student_id and (interval[4] == 'pending' or interval[4] == 'approved'):
+            ct = getCourseTime(interval[1])
+            reg_courses_time_interval.append([ct, ct + 180])
+
+    for ea in reg_courses_time_interval:
+        if ea[0] < abs_course_time + 180 < ea[1] or ea[0] < abs_course_time < ea[1]:
+            return False
+
+    return True
