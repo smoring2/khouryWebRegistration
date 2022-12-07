@@ -40,7 +40,7 @@ def advisor_login(request):
 
     if user.password == password:
         request.session['employee_id'] = user.employee_id
-        return redirect("advisor_profile", user.employee_id)
+        return redirect("advisor_statics", user.employee_id)
     else:
         # return render(request, 'advisor/advisor_login.html', {"error": "Wrong password."})
         messages.warning(request, 'Password is not correct')
