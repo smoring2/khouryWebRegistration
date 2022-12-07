@@ -4,6 +4,11 @@ from django.views.generic import ListView, DetailView
 from django.db import connection
 from django.http import HttpResponse
 
+
+def testmysql(request):
+    return render(request, 'home.html')
+
+
 # StudentList class should be deleted later on.
 class StudentList(ListView):
     template_name = 'student/student_list.html'
@@ -42,7 +47,6 @@ def getStudentNotification(request, student_id):
 
 
 def dropCourse(request, student_id):
-    removeRejFromRegistration()
     cursor = connection.cursor()
     course_currently_taking = getCourseCurrentlyTakingOrPending(student_id)
     if request.method == 'POST':
@@ -62,6 +66,7 @@ def dropCourse(request, student_id):
 
             cursor.execute('''DELETE FROM registration WHERE nuid = %(nuid)s AND course_id = %(course_id)s ''',
                            {'nuid': nuid, 'course_id': course_id})
+            updateEnrolledStudents(course_id)
             return HttpResponse('Drop succeed')
 
     res = {
@@ -121,7 +126,7 @@ def getDegreeAudit(request, student_id):
                                         'course_name': getCourseNameByCourseNum(comp[1]),
                                         'points_earned': sh * min(4.0, comp[3])})
 
-    res['cumulative_sh'].append("Cumulative Semester Hours: " + str(cum_sh))
+    res['cumulative_sh'].append("Cumulative Semester Hours: " + str(round(cum_sh, 2)))
     res['cumulative_pts'].append("Cumulative Points: " + str(round(cum_gpa, 2)))
     if cum_sh == 0:
         res['overall_gpa'].append("Overall GPA: " + str(0))
@@ -139,6 +144,8 @@ def getDegreeAudit(request, student_id):
 
 def getRegistrationInfo(request, student_id):
     cursor = connection.cursor()
+    for c in getCourseNumList():
+        updateEnrolledStudents(c)
     # Submit course registration form.
     if request.method == 'POST':
         nuid = student_id
@@ -155,13 +162,12 @@ def getRegistrationInfo(request, student_id):
             if nuid == all_registration_info[i][0] and course_id == all_registration_info[i][1]:
                 return HttpResponse('Error, you cannot submit the same form.')
         if course_id not in getCourseNumList():
-            return HttpResponse(str(getCourseNumList()) + 'Course number you put is not in the course list, please'
+            return HttpResponse('Course number you put is not in the course list, please'
                                                           'input a correct course num.')
-        # Invalid case 2: The nuid student input is not his/ her own.
-        elif nuid != student_id:
-            return HttpResponse('You cannot help others to register courses.')
         elif isCourseFull(course_id):
             return HttpResponse('The course you registered for has reached the capacity')
+        elif getStudentCurSh(student_id, course_id) > getStudentMaxSh(student_id):
+            return HttpResponse('You have reached the maximum semester hour courses you can register')
         elif isConflict(student_id, course_id):
             return HttpResponse('There is a time conflict on your schedule, you cannot register this course')
         else:
@@ -246,6 +252,30 @@ def getCompleteCoursesByNuid(student_id):
 
 
 # Student Table
+# Get semester hour courses student registered.
+def getStudentCurSh(student_id, course_id):
+    sh = 0
+    cursor = connection.cursor()
+    for c in getCourseCurrentlyTakingOrPending(student_id):
+        cursor.execute('''SELECT semester_hrs FROM course where course_id = %(course_id)s ''',
+                       {'course_id': c})
+        sh += cursor.fetchall()[0][0]
+
+    cursor.execute('''SELECT semester_hrs FROM course where course_id = %(course_id)s ''',
+                   {'course_id': course_id})
+    sh += cursor.fetchall()[0][0]
+
+    return sh
+
+def getStudentMaxSh(student_id):
+    cursor = connection.cursor()
+    cursor.execute('''SELECT semesterhour FROM student WHERE nuid = %(student_id)s''',
+                   {'student_id': student_id})
+    res = cursor.fetchall()[0][0]
+    cursor.close()
+
+    return res
+
 # Get student id list.
 def getStudentIdList():
     cursor = connection.cursor()
@@ -306,6 +336,16 @@ def updateAllStudentGpa():
 
 
 # Registration Table
+# Get all informatin from registration table.
+def getAllRegistrationInfo():
+    cursor = connection.cursor()
+    cursor.execute('''SELECT * FROM registration''')
+    res = cursor.fetchall()
+    cursor.close()
+
+    return res
+
+
 # Remove status equals 'rejected' rows form registration table.
 def removeRejFromRegistration():
     cursor = connection.cursor()
@@ -346,13 +386,13 @@ def getCourseInProgress(student_id):
     cursor = connection.cursor()
     cursor.execute('''SELECT course_id FROM registration WHERE nuid = %(student_id)s AND status = 'approved'
     ''', {'student_id': student_id})
-    res = cursor.fetchall()
+    res = []
+
+    for data in cursor.fetchall():
+        res.append(data[0])
     cursor.close()
 
-    if res:
-        return res[0]
-
-    return []
+    return res
 
 
 # Input takes a student NUID, get all course numbers that the student submitted registration form and still pending
@@ -388,6 +428,19 @@ def getAdvisorByStudentId(student_id):
 
 
 # Course Table
+# Update student enrollment of designated courses based on the information in Registration table.
+def updateEnrolledStudents(course_id):
+    cursor = connection.cursor()
+    stu_enrollment = 0
+    cursor.execute('''SELECT * FROM registration WHERE course_id = %(course_id)s''', {'course_id': course_id})
+
+    for ea in cursor.fetchall():
+        if ea[4] == 'approved':
+            stu_enrollment += 1
+    cursor.execute('''UPDATE course set registered_num_of_stud = %(stu_enrollment)s WHERE course_id = 
+    %(course_id)s ''', {'stu_enrollment': stu_enrollment, 'course_id': course_id})
+
+
 # Get course time by course id.
 def getCourseTime(course_id):
     res = []
@@ -395,13 +448,13 @@ def getCourseTime(course_id):
     cursor.execute('''SELECT meeting_time FROM course WHERE course_id = %(course_id)s''', {'course_id': course_id})
     res.append(str(cursor.fetchall()[0][0]))
     cursor.execute('''SELECT date FROM course WHERE course_id = %(course_id)s''', {'course_id': course_id})
-    if not cursor.fetchall():
-        res.append(None)
-    else:
-        res.append(str(cursor.fetchall()[0][0]))
+
+    res.append(str(cursor.fetchall()[0][0]))
     cursor.close()
 
     return res
+
+
 # The method takes course id as input, return if the course has reached it's capacity.
 def isCourseFull(course_id):
     cursor = connection.cursor()
@@ -433,6 +486,7 @@ def getAllCourseInfo():
     cursor.close()
 
     return res
+
 
 # Get course number list.
 def getCourseNumList():
@@ -466,50 +520,62 @@ def timeConversion(date, time):
     one_day = 24 * 60
     hour = int(time[0 : 2])
     min = int(time[3 : 5])
-    time_to_min = one_day - 1 * (date_map[date] - 1) + hour * 60 + min
+    time_to_min = one_day * (date_map[date] - 1) + hour * 60 + min
 
     return time_to_min
 
 
 def isConflict(student_id, course_id):
     course_time = getCourseTime(course_id)
-    if course_time[1] == None:
+    if course_time[1] is None:
         return False
 
     abs_course_time = timeConversion(course_time[1], course_time[0])
     reg_courses_time_interval = []
 
-    for interval in getAllCourseInfo():
+    for interval in getAllRegistrationInfo():
         if interval[0] == student_id and (interval[4] == 'pending' or interval[4] == 'approved'):
-            ct = getCourseTime(interval[1])
+            course = interval[1]
+            ct = timeConversion(getCourseTime(course)[1], getCourseTime(course)[0])
             reg_courses_time_interval.append([ct, ct + 180])
 
     for ea in reg_courses_time_interval:
         if ea[0] < abs_course_time + 180 < ea[1] or ea[0] < abs_course_time < ea[1]:
-            return False
+            return True
 
-    return True
+    return False
 
+
+# Grade letter gpa conversion:
+# A+: 4.33 A: 4.00 A-: 3.66
+# B+: 3.33 B: 3.00 B-: 2.66
+# C+: 2.33 C: 2.00 C-: 1.66
+# D+: 1.33 D: 1.00 D-: 0.66
+# F: 0.00
 def getGrade(grade):
-    if grade < 1.0:
+    if grade < 0.66:
         return 'F'
-    if grade == 1.0:
+    if grade < 1.0:
+        return 'D-'
+    if grade < 1.33:
         return 'D'
-    if grade <= 1.33:
-        return 'D+'
-    if grade <= 1.66:
-        return 'C-+'
-    if grade <= 2:
+    if grade < 1.66:
+        return 'D++'
+    if grade < 2:
+        return 'C-'
+    if grade < 2.33:
         return 'C'
-    if grade <= 2.33:
+    if grade < 2.66:
         return 'C+'
-    if grade <= 2.66:
+    if grade < 3:
         return 'B-'
-    if grade <= 3:
+    if grade < 3.33:
         return 'B'
-    if grade <= 3.33:
+    if grade < 3.66:
         return 'B+'
-    if grade <= 3.66:
+    if grade < 4.00:
         return 'A-'
+    if grade < 4.33:
+        return 'A'
 
-    return 'A'
+    return 'A+'

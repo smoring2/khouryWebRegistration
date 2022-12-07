@@ -25,19 +25,19 @@
         <div class="col-2">
             <div class="list-group">
                 <a href="{% url 'student_home' data.student_id %}"
-                   class="list-group-item active">Home</a>
+                   class="list-group-item">Home</a>
                 <a href="{% url 'student_profile' data.student_id %}"
-                   class="list-group-item active">View Profile</a>
+                   class="list-group-item">View Profile</a>
                 <a href="{% url 'course_registration' student_id=data.student_id %}"
-                   class="list-group-item active">Registration</a>
+                   class="list-group-item">Registration</a>
                 <a href="{% url 'student_notification' data.student_id %}"
-                   class="list-group-item active">View Notifications</a>
+                   class="list-group-item">View Notifications</a>
                 <a href="{% url 'course_drop' student_id=data.student_id %}"
-                   class="list-group-item active">Drop Courses</a>
+                   class="list-group-item">Drop Courses</a>
                 <a href="{% url 'degree_audit' student_id=data.student_id %}"
                    class="list-group-item active">My Grades</a>
-                <a href="{% url 'student_list' %}"
-                   class="list-group-item active">Logout</a>
+                <a href="{% url 'home_signin' %}"
+                   class="list-group-item">Logout</a>
             </div>
         </div>
         <div class="col-10">
