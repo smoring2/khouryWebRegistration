@@ -125,7 +125,6 @@ def add_course(request):
             except:
                 messages.error(request, "Could Not Add course")
         else:
-            print(form.errors.as_data())
             messages.error(request, "Could Not Add")
     return render(request, 'admin_template/add_course_template.html', context)
 
