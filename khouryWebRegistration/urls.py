@@ -26,7 +26,7 @@ urlpatterns = [
     # path('admin/', admin.site.urls),
 
     #mainpage
-    path('', views.testmysql),
+    path('', views.testmysql, name = 'home_signin'),
 
     #signin
     path('student/signIn', signin_view.student_login_page, name='student_login_page'),
