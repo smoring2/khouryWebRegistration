@@ -292,8 +292,12 @@ def edit_course(request, course_id):
 
 def delete_advisor(request, employee_id):
     advisor = get_object_or_404(Advisor, employee_id=employee_id)
-    advisor.delete()
-    messages.success(request, "Advisor deleted successfully!")
+    try:
+        advisor.delete()
+        messages.success(request, "Advisor deleted successfully!")
+    except:
+        messages.success(request, "Can not delete this advisor!")
+
     return redirect(reverse('manage_advisor'))
 
 
