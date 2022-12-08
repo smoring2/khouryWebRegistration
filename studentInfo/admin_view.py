@@ -307,6 +307,9 @@ def delete_student(request, nuid):
 
 def delete_course(request, course_id):
     course = get_object_or_404(Course, course_id=course_id)
-    course.delete()
-    messages.success(request, "Course deleted successfully!")
+    try:
+        course.delete()
+        messages.success(request, "Course deleted successfully!")
+    except Exception as e:
+        messages.success(request, "Course has already been registered.\n Please drop the registration first!")
     return redirect(reverse('manage_course'))
