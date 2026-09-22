@@ -156,3 +156,26 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+# Django REST framework
+# Without an explicit default, DRF falls back to AllowAny and every API
+# endpoint is reachable anonymously. Every endpoint of this project belongs to
+# the advisor portal, so the default is an advisor session that owns the data
+# being addressed.
+
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': [
+        'studentInfo.access_control.IsSignedInAdvisor',
+    ],
+    'DEFAULT_AUTHENTICATION_CLASSES': [],
+    'UNAUTHENTICATED_USER': None,
+}
+
+
+# Session cookie hardening.
+
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = 'Lax'
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+CSRF_COOKIE_SAMESITE = 'Lax'

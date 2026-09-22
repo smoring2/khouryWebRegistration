@@ -5,6 +5,14 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 
 from django.db import connection
+
+from .access_control import ROLE_ADVISOR, current_principal_id
+
+# Access control for every endpoint below is enforced by the project wide
+# REST_FRAMEWORK['DEFAULT_PERMISSION_CLASSES'] setting
+# (studentInfo.access_control.IsSignedInAdvisor): a signed in advisor session is
+# required, and when a request carries an `advisor_id` parameter it must match
+# the advisor identity stored in that session.
 NO_PERMISSION_ALERT = "No records.\n Or No permission. This is not your student!"
 SUCCEED_ALERT = "Succeed"
 ERROR_ALERT = "Something wrong! Please try again!"
@@ -222,17 +230,23 @@ def insertStudent(request):
     cursor.close()
     return JsonResponse({'message': message, "succeed": succeed}, safe=False)
 
-SQL_STUDENT_UPDATE_HOURS = '''update student set semesterhour= %(hours)s where nuid = %(nuid)s '''
+SQL_STUDENT_UPDATE_HOURS = '''update student set semesterhour= %(hours)s where nuid = %(nuid)s and advisor = %(advisor_id)s '''
 @api_view(['GET'])
 def updateHours(request):
     nuid = request.query_params.get('nuid')
     hours = request.query_params.get('hours')
+    # The advisor identity comes from the session, never from the request, and
+    # the update only touches the advisor's own students.
+    advisor_id = current_principal_id(request, ROLE_ADVISOR)
     cursor= connection.cursor()
-    val = {'nuid': int(nuid), 'hours': int(hours)}
+    val = {'nuid': int(nuid), 'hours': int(hours), 'advisor_id': int(advisor_id)}
     message = ''
     try:
         cursor.execute(SQL_STUDENT_UPDATE_HOURS, val)
-        message = SUCCEED_ALERT
+        if cursor.rowcount == 0:
+            message = NO_PERMISSION_ALERT
+        else:
+            message = SUCCEED_ALERT
     except:
         message = ERROR_ALERT
     cursor.close()
