@@ -2,7 +2,12 @@ from django.http import HttpResponse
 from django.http import Http404
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
+from .access_control import login_advisor, login_admin, login_student, logout
 from .models import *
+
+# Shown to the user for both "unknown account" and "wrong password" so the login
+# form does not disclose which identifiers exist.
+INVALID_CREDENTIALS = 'Invalid credentials.'
 
 def student_login_page(request):
     return render(request, 'student/student_login.html')
@@ -13,17 +18,15 @@ def student_login(request):
     try:
         user = Student.objects.get(nuid=nuid)
     except Student.DoesNotExist:
-        # return render(request, 'student/student_login.html', {"error": "User doesn't exist."})
-        messages.warning(request, 'Student with ID {} doesn"t exists!'.format(nuid))
+        messages.warning(request, INVALID_CREDENTIALS)
         return redirect('student_login_page')
 
     if user.password == password:
-        request.session['nuid'] = user.nuid
+        login_student(request, user)
         return redirect("student_profile", user.nuid)
     else:
-        messages.warning(request, 'Password is not correct')
+        messages.warning(request, INVALID_CREDENTIALS)
         return redirect('student_login_page')
-        # return render(request, 'student/student_login.html', {"error": "Wrong password."})
 
 def advisor_login_page(request):
     return render(request, 'advisor/advisor_login.html')
@@ -34,16 +37,14 @@ def advisor_login(request):
     try:
         user = Advisor.objects.get(employee_id=employee_id)
     except Advisor.DoesNotExist:
-        # return render(request, 'advisor/advisor_login.html', {"error": "User doesn't exist."})
-        messages.warning(request, 'Advisor with ID {} doesn"t exists!'.format(employee_id))
+        messages.warning(request, INVALID_CREDENTIALS)
         return redirect('advisor_login_page')
 
     if user.password == password:
-        request.session['employee_id'] = user.employee_id
+        login_advisor(request, user)
         return redirect("advisor_statics", user.employee_id)
     else:
-        # return render(request, 'advisor/advisor_login.html', {"error": "Wrong password."})
-        messages.warning(request, 'Password is not correct')
+        messages.warning(request, INVALID_CREDENTIALS)
         return redirect('advisor_login_page')
 
 def admin_login_page(request):
@@ -55,14 +56,17 @@ def admin_login(request):
     try:
         user = Admin.objects.get(employee_id=employee_id)
     except Admin.DoesNotExist:
-        # return render(request, 'admin_template/admin_login.html', {"error": "User doesn't exist."})
-        messages.warning(request, 'Student with ID {} doesn"t exists!'.format(employee_id))
+        messages.warning(request, INVALID_CREDENTIALS)
         return redirect('admin_login_page')
 
     if user.password == password:
-        request.session['employee_id'] = user.employee_id
+        login_admin(request, user)
         return redirect("admin_home")
     else:
-        # return render(request, 'admin_template/admin_login.html', {"error": "Wrong password."})
-        messages.warning(request, 'Password is not correct')
+        messages.warning(request, INVALID_CREDENTIALS)
         return redirect('admin_login_page')
+
+def sign_out(request):
+    logout(request)
+    messages.success(request, 'You have been signed out.')
+    return redirect('home_signin')

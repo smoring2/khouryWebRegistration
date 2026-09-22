@@ -1,5 +1,7 @@
 from django.shortcuts import render
 from django.db import connection
+
+from .access_control import advisor_required
 SQL_ADVISOR_INFO = '''SELECT * FROM advisor where employee_id = %(employee_id)s'''
 SQL_COURSE_INFO = '''SELECT * from course where course_id = %(course_id)s '''
 SQL_STUDENT_INFO = '''select * from student where nuid = %(nuid)s '''
@@ -72,6 +74,7 @@ def getInstructorByInstructorId(instructor_id):
     cursor.close()
     return instructor_info
 
+@advisor_required
 def getAdvisorProfile(request, employee_id):
     advisor_info = getAdvisorInfoById(employee_id)
     res = {}
@@ -99,6 +102,7 @@ SQL_ADVISOR_STU_UNDER_3 = '''select * from student where advisor = %(employee_id
 SQL_ADVISOR_STU_GAP_FULL = '''select * from student where advisor = %(employee_id)s and grade >= 4'''
 SQL_ADVISOR_STU_GPA_BETWEEN = '''select * from student  where advisor = %(employee_id)s and grade >= 3 AND grade < 4'''
 
+@advisor_required
 def getAdvisorStatistics(request, advisor_id):
     res = {}
     advisor_info = getAdvisorInfoById(advisor_id)
@@ -138,6 +142,7 @@ def getAdvisorStatistics(request, advisor_id):
     return render(request, 'advisor/advisor_index.html', context)
 
 SQL_REGISTRATIONS_STU_LIST = '''select nuid, course_id from registration where advisor_id = %(employee_id)s and status='pending' '''
+@advisor_required
 def getAdvisorRequests(request, advisor_id):
     results = {}
     advisor_info = getAdvisorInfoById(advisor_id)
@@ -181,6 +186,7 @@ def getStusPendingRegistration(pendingList):
         results.append(vals)
     return results
 
+@advisor_required
 def getAdvisorStudentSearch(request, advisor_id):
     res = {}
     val = {'employee_id': int(advisor_id)}
@@ -196,6 +202,7 @@ SQL_REGISTRATION_COMPLETED = '''select course_id, grade from registration where 
 SQL_REGISTRATION_PENDING = '''select course_id from registration where nuid = %(nuid)s and status = 'pending' '''
 SQL_REGISTRATION_FAILED = '''select course_id, grade from registration where nuid = %(nuid)s and status = 'failed' '''
 SQL_REGISTRATION_APPROVED = '''select course_id from registration where nuid = %(nuid)s and status = 'approved' '''
+@advisor_required
 def getStudentSearchDetails(request):
     nuid = request.GET.get('nuid')
     advisor_id = request.GET.get('advisor')
@@ -275,6 +282,7 @@ def getStudentSearchDetails(request):
     return render(request, 'advisor/advisor_search_details.html', context)
 
 SQL_ADVISOR_STUS_LIST = '''select * from student where advisor = %(advisor)s '''
+@advisor_required
 def getMyStudentsList(request, advisor_id):
     cursor= connection.cursor()
     var = {'advisor': int(advisor_id)}
@@ -292,6 +300,7 @@ def getMyStudentsList(request, advisor_id):
     cursor.close()
     return render(request, 'advisor/advisor_students.html', context)
 
+@advisor_required
 def getAdvisorCourseSearch(request, advisor_id):
     res = {}
     advisor_info = getAdvisorInfoById(advisor_id)
@@ -303,6 +312,7 @@ def getAdvisorCourseSearch(request, advisor_id):
     return render(request, 'advisor/advisor_courses.html', context)
 
 SQL_COURSE_TAS = '''select * from ta where course_id = %(course_id)s '''
+@advisor_required
 def getCourseSearchDetails(request):
      advisor_id = request.GET.get('advisor_id')
      advisor_info = getAdvisorInfoById(advisor_id)
