@@ -4,6 +4,8 @@ from django.views.generic import ListView, DetailView
 from django.db import connection
 from django.http import HttpResponse
 
+from .validation import coerce_int
+
 
 def testmysql(request):
     return render(request, 'home.html')
@@ -51,7 +53,11 @@ def dropCourse(request, student_id):
     course_currently_taking = getCourseCurrentlyTakingOrPending(student_id)
     if request.method == 'POST':
         nuid = student_id
-        course_id = int(request.POST['course_number'])
+        # Never index request.POST directly: a missing or non-numeric value
+        # would raise MultiValueDictKeyError/ValueError and expose a traceback.
+        course_id = coerce_int(request.POST.get('course_number'))
+        if course_id is None:
+            return HttpResponse('Please provide a valid course number.', status=400)
 
         advisor_id = getAdvisorByStudentId(student_id)
 
@@ -118,13 +124,17 @@ def getDegreeAudit(request, student_id):
             course_id = comp[1]
             course_id = {'course_id': int(course_id)}
             cursor.execute('''SELECT semester_hrs FROM course WHERE course_id = %(course_id)s''', course_id)
-            # Semester hours.
-            sh = cursor.fetchall()[0][0]
+            # Semester hours. A missing course row or a NULL grade must not raise.
+            rows = cursor.fetchall()
+            if not rows:
+                continue
+            sh = rows[0][0] or 0
+            grade = comp[3] if comp[3] is not None else 0
             cum_sh += sh
-            cum_gpa += sh * min(4.0, comp[3])
-            res['complete_list'].append({'course_id': comp[1], 'grade': getGrade(comp[3]),
+            cum_gpa += sh * min(4.0, grade)
+            res['complete_list'].append({'course_id': comp[1], 'grade': getGrade(grade),
                                         'course_name': getCourseNameByCourseNum(comp[1]),
-                                        'points_earned': sh * min(4.0, comp[3])})
+                                        'points_earned': sh * min(4.0, grade)})
 
     res['cumulative_sh'].append("Cumulative Semester Hours: " + str(round(cum_sh, 2)))
     res['cumulative_pts'].append("Cumulative Points: " + str(round(cum_gpa, 2)))
@@ -149,7 +159,9 @@ def getRegistrationInfo(request, student_id):
     # Submit course registration form.
     if request.method == 'POST':
         nuid = student_id
-        course_id = int(request.POST['course_number'])
+        course_id = coerce_int(request.POST.get('course_number'))
+        if course_id is None:
+            return HttpResponse('Please provide a valid course number.', status=400)
         advisor_id = getAdvisorByStudentId(student_id)
 
         cursor.execute('''SELECT * from registration''')
@@ -215,9 +227,13 @@ def getNameByCourseNum(course_id):
     cursor = connection.cursor()
     course_id = {'course_id': course_id}
     cursor.execute('''SELECT course_name FROM course WHERE course_id = %(course_id)s''', course_id)
+    res = cursor.fetchall()
     cursor.close()
 
-    return cursor.fetchall()[0][0]
+    if not res:
+        return ''
+
+    return res[0][0]
 
 
 # Retrieve all information from the course list.
@@ -259,11 +275,15 @@ def getStudentCurSh(student_id, course_id):
     for c in getCourseCurrentlyTakingOrPending(student_id):
         cursor.execute('''SELECT semester_hrs FROM course where course_id = %(course_id)s ''',
                        {'course_id': c})
-        sh += cursor.fetchall()[0][0]
+        rows = cursor.fetchall()
+        if rows:
+            sh += rows[0][0]
 
     cursor.execute('''SELECT semester_hrs FROM course where course_id = %(course_id)s ''',
                    {'course_id': course_id})
-    sh += cursor.fetchall()[0][0]
+    rows = cursor.fetchall()
+    if rows:
+        sh += rows[0][0]
 
     return sh
 
@@ -271,10 +291,13 @@ def getStudentMaxSh(student_id):
     cursor = connection.cursor()
     cursor.execute('''SELECT semesterhour FROM student WHERE nuid = %(student_id)s''',
                    {'student_id': student_id})
-    res = cursor.fetchall()[0][0]
+    rows = cursor.fetchall()
     cursor.close()
 
-    return res
+    if not rows or rows[0][0] is None:
+        return 0
+
+    return rows[0][0]
 
 # Get student id list.
 def getStudentIdList():
@@ -310,9 +333,12 @@ def calculateStudentGpa(student_id):
                 cursor.execute('''SELECT semester_hrs FROM course WHERE course_id = %(course_id)s''',
                                {'course_id': comp[1]})
                 # Semester hours.
-                sh = cursor.fetchall()[0][0]
+                rows = cursor.fetchall()
+                if not rows:
+                    continue
+                sh = rows[0][0] or 0
                 cum_sh += sh
-                cum_gpa += sh * min(4.0, comp[3])
+                cum_gpa += sh * min(4.0, comp[3] if comp[3] is not None else 0)
 
     if cum_sh == 0:
         return 0
@@ -420,8 +446,13 @@ def getAdvisorByStudentId(student_id):
     cursor = connection.cursor()
     student_id = {'student_id': student_id}
     cursor.execute('''SELECT advisor FROM student WHERE nuid = %(student_id)s''', student_id)
+    res = cursor.fetchall()
     cursor.close()
-    return cursor.fetchall()[0][0]
+
+    if not res:
+        return None
+
+    return res[0][0]
 
 
 # Admin Table
@@ -445,11 +476,16 @@ def updateEnrolledStudents(course_id):
 def getCourseTime(course_id):
     res = []
     cursor = connection.cursor()
-    cursor.execute('''SELECT meeting_time FROM course WHERE course_id = %(course_id)s''', {'course_id': course_id})
-    res.append(str(cursor.fetchall()[0][0]))
-    cursor.execute('''SELECT date FROM course WHERE course_id = %(course_id)s''', {'course_id': course_id})
-
-    res.append(str(cursor.fetchall()[0][0]))
+    for column in ('meeting_time', 'date'):
+        cursor.execute(
+            '''SELECT {} FROM course WHERE course_id = %(course_id)s'''.format(column),
+            {'course_id': course_id})
+        rows = cursor.fetchall()
+        # A missing row or a NULL column must stay None: coercing it with str()
+        # produced the literal 'None', which later raised KeyError in
+        # timeConversion and made the `is None` guards dead code.
+        value = rows[0][0] if rows else None
+        res.append(None if value is None else str(value))
     cursor.close()
 
     return res
@@ -458,13 +494,16 @@ def getCourseTime(course_id):
 # The method takes course id as input, return if the course has reached it's capacity.
 def isCourseFull(course_id):
     cursor = connection.cursor()
-    cursor.execute('''SELECT max_num_of_students FROM course WHERE course_id = %(course_id)s''',
-                   {'course_id': course_id})
-    cap = cursor.fetchall()[0][0]
-    cursor.execute('''SELECT registered_num_of_stud FROM course WHERE course_id = %(course_id)s''',
-                   {'course_id': course_id})
-    cur_num = cursor.fetchall()[0][0]
+    cursor.execute('''SELECT max_num_of_students, registered_num_of_stud FROM course
+    WHERE course_id = %(course_id)s''', {'course_id': course_id})
+    rows = cursor.fetchall()
     cursor.close()
+
+    if not rows:
+        return False
+
+    cap = rows[0][0] or 0
+    cur_num = rows[0][1] or 0
     return cur_num >= cap
 
 
@@ -474,6 +513,9 @@ def getCourseNameByCourseNum(course_num):
     cursor.execute('''SELECT course_name FROM course WHERE course_id = %(course_num)s''', {'course_num': course_num})
     res = cursor.fetchall()
     cursor.close()
+
+    if not res:
+        return ''
 
     return res[0][0]
 
@@ -515,12 +557,20 @@ def getInstructorNameById(instructor_id):
 
 # Util Library
 def timeConversion(date, time):
-    date_map = {'M': 1, 'T': 2, 'W': 3, 'Th': 4, 'F': 5, 'S': 6, 'S': 7}
+    date_map = {'M': 1, 'T': 2, 'W': 3, 'Th': 4, 'F': 5, 'S': 6, 'Su': 7}
+    # Unknown days or malformed times must not raise KeyError/ValueError/TypeError.
+    day = date_map.get(date)
+    if day is None or not time:
+        return None
+
     # Convert to seconds.
     one_day = 24 * 60
-    hour = int(time[0 : 2])
-    min = int(time[3 : 5])
-    time_to_min = one_day * (date_map[date] - 1) + hour * 60 + min
+    hour = coerce_int(time[0: 2])
+    min = coerce_int(time[3: 5])
+    if hour is None or min is None:
+        return None
+
+    time_to_min = one_day * (day - 1) + hour * 60 + min
 
     return time_to_min
 
@@ -531,12 +581,18 @@ def isConflict(student_id, course_id):
         return False
 
     abs_course_time = timeConversion(course_time[1], course_time[0])
+    if abs_course_time is None:
+        return False
+
     reg_courses_time_interval = []
 
     for interval in getAllRegistrationInfo():
         if interval[0] == student_id and (interval[4] == 'pending' or interval[4] == 'approved'):
             course = interval[1]
-            ct = timeConversion(getCourseTime(course)[1], getCourseTime(course)[0])
+            registered_time = getCourseTime(course)
+            ct = timeConversion(registered_time[1], registered_time[0])
+            if ct is None:
+                continue
             reg_courses_time_interval.append([ct, ct + 180])
 
     for ea in reg_courses_time_interval:

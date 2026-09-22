@@ -1,5 +1,8 @@
+from django.http import Http404
 from django.shortcuts import render
 from django.db import connection
+
+from .validation import coerce_int
 SQL_ADVISOR_INFO = '''SELECT * FROM advisor where employee_id = %(employee_id)s'''
 SQL_COURSE_INFO = '''SELECT * from course where course_id = %(course_id)s '''
 SQL_STUDENT_INFO = '''select * from student where nuid = %(nuid)s '''
@@ -10,79 +13,70 @@ SQL_COURSE_DETAIL = '''select * from course where course_id = %(course_id)s '''
 
 # cursor= connection.cursor()
 
-def getAdvisorInfoById(employee_id):
-    cursor= connection.cursor()
-    val = {'employee_id': int(employee_id)}
-    cursor.execute(SQL_ADVISOR_INFO, val)
+
+def _fetch_by_id(sql, param_name, raw_id):
+    """Run a single-id lookup after validating the id.
+
+    Returns an empty list when the id is missing or not numeric, so callers can
+    handle "not found" instead of propagating ``ValueError``/``TypeError``.
+    """
+    identifier = coerce_int(raw_id)
+    if identifier is None:
+        return []
+    cursor = connection.cursor()
     try:
-        advisor_info = cursor.fetchall()
-    except Exception as e:
-        print("error")
-        print(e)
-    cursor.close()
-    return advisor_info
+        cursor.execute(sql, {param_name: identifier})
+        return cursor.fetchall()
+    finally:
+        cursor.close()
+
+
+def getAdvisorInfoById(employee_id):
+    return _fetch_by_id(SQL_ADVISOR_INFO, 'employee_id', employee_id)
 
 def getCourseInfoByCourseId(course_id):
-    cursor= connection.cursor()
-    val = {'course_id': int(course_id)}
-    cursor.execute(SQL_COURSE_INFO, val)
-    course_info = cursor.fetchall()
-    cursor.close()
-    return course_info
+    return _fetch_by_id(SQL_COURSE_INFO, 'course_id', course_id)
 
 
 def getStudentInfoByNuid(nuid):
-    cursor = connection.cursor()
-    val = {'nuid': int(nuid)}
-    cursor.execute(SQL_STUDENT_INFO, val)
-    student_info = cursor.fetchall()
-    cursor.close()
-    return student_info
+    return _fetch_by_id(SQL_STUDENT_INFO, 'nuid', nuid)
 
 def getDepartmentByDepartmentId(department_id):
-    cursor = connection.cursor()
-    val = {'department_id': int(department_id)}
-    cursor.execute(SQL_DEPARTMENT_INFO, val)
-    department_info = cursor.fetchall()
-    cursor.close()
-    return department_info
+    return _fetch_by_id(SQL_DEPARTMENT_INFO, 'department_id', department_id)
 
 def getCampusByCampusId(campusid):
-    cursor = connection.cursor()
-    val = {'campusid': int(campusid)}
-    cursor.execute(SQL_CAMPUS_INFO, val)
-    campus_info = cursor.fetchall()
-    cursor.close()
-    return campus_info
+    return _fetch_by_id(SQL_CAMPUS_INFO, 'campusid', campusid)
 
 def getCollegeByCollegeid(colleageid):
-    cursor = connection.cursor()
-    val = {'collegeid': int(colleageid)}
-    cursor.execute(SQL_COLLEGE_INFO, val)
-    college_info = cursor.fetchall()
-    cursor.close()
-    return college_info
+    return _fetch_by_id(SQL_COLLEGE_INFO, 'collegeid', colleageid)
 
 SQL_INSTRUCTOR_INFO = '''select * from instructor where employee_id = %(instructor_id)s '''
 def getInstructorByInstructorId(instructor_id):
-    cursor = connection.cursor()
-    val = {'instructor_id': int(instructor_id)}
-    cursor.execute(SQL_INSTRUCTOR_INFO, val)
-    instructor_info = cursor.fetchall()
-    cursor.close()
-    return instructor_info
+    return _fetch_by_id(SQL_INSTRUCTOR_INFO, 'instructor_id', instructor_id)
+
+
+def getAdvisorInfoOr404(advisor_id):
+    """Return the advisor row or raise ``Http404``.
+
+    Unknown or non-numeric ids must produce a clean 404 rather than an
+    ``IndexError`` traceback.
+    """
+    advisor_info = getAdvisorInfoById(advisor_id)
+    if not advisor_info:
+        raise Http404('Advisor not found')
+    return advisor_info
+
 
 def getAdvisorProfile(request, employee_id):
-    advisor_info = getAdvisorInfoById(employee_id)
+    advisor_info = getAdvisorInfoOr404(employee_id)
     res = {}
-    if advisor_info:
-        res['employee_id'] = employee_id
-        res['name'] = advisor_info[0][1]
-        res['email'] = advisor_info[0][2]
-        res['phone'] = advisor_info[0][3]
+    res['employee_id'] = employee_id
+    res['name'] = advisor_info[0][1]
+    res['email'] = advisor_info[0][2]
+    res['phone'] = advisor_info[0][3]
     department_id = advisor_info[0][4]
     department_info = getDepartmentByDepartmentId(department_id)
-    if department_id:
+    if department_info:
         res['department_id'] = department_info[0][0]
         res['department_name'] = department_info[0][1]
         res['office_addr'] = department_info[0][2]
@@ -101,8 +95,7 @@ SQL_ADVISOR_STU_GPA_BETWEEN = '''select * from student  where advisor = %(employ
 
 def getAdvisorStatistics(request, advisor_id):
     res = {}
-    advisor_info = getAdvisorInfoById(advisor_id)
-    print(advisor_info)
+    advisor_info = getAdvisorInfoOr404(advisor_id)
     res['advisor_id'] = advisor_id
     res['advisor_name'] = advisor_info[0][1]
     cursor= connection.cursor()
@@ -124,9 +117,12 @@ def getAdvisorStatistics(request, advisor_id):
 
     if stu_info:
         res['numOfStus'] = len(stu_info)
-        res['avg_gpa'] = stu_avg_gpa[0][0]
-        res['max_gpa'] = stu_max_gpa[0][0]
-        res['min_gpa'] = stu_min_gpa[0][0]
+        if stu_avg_gpa:
+            res['avg_gpa'] = stu_avg_gpa[0][0]
+        if stu_max_gpa:
+            res['max_gpa'] = stu_max_gpa[0][0]
+        if stu_min_gpa:
+            res['min_gpa'] = stu_min_gpa[0][0]
         res['numOfStusUnder'] = len(stu_gpa_under)
         res['numOfStusFull'] = len(stu_gpa_full)
         res['numOfStusBetween'] = len(stu_gpa_between)
@@ -140,7 +136,7 @@ def getAdvisorStatistics(request, advisor_id):
 SQL_REGISTRATIONS_STU_LIST = '''select nuid, course_id from registration where advisor_id = %(employee_id)s and status='pending' '''
 def getAdvisorRequests(request, advisor_id):
     results = {}
-    advisor_info = getAdvisorInfoById(advisor_id)
+    advisor_info = getAdvisorInfoOr404(advisor_id)
     results['advisor_name'] = advisor_info[0][1]
     cursor= connection.cursor()
     val = {'employee_id': int(advisor_id)}
@@ -162,7 +158,8 @@ def getStusPendingRegistration(pendingList):
     for pending in pendingList:
         nuid = pending[0]
         course_id = pending[1]
-        course_name = getCourseInfoByCourseId(course_id)[0][1]
+        course_info = getCourseInfoByCourseId(course_id)
+        course_name = course_info[0][1] if course_info else ''
         if nuid in dict:
             dict[nuid]["courses"].append({'course_id': course_id, 'course_name': course_name})
             continue
@@ -183,8 +180,7 @@ def getStusPendingRegistration(pendingList):
 
 def getAdvisorStudentSearch(request, advisor_id):
     res = {}
-    val = {'employee_id': int(advisor_id)}
-    advisor_info = getAdvisorInfoById(advisor_id)
+    advisor_info = getAdvisorInfoOr404(advisor_id)
     res['advisor_name'] = advisor_info[0][1]
     res['advisor_id'] = advisor_id
     context = {
@@ -197,13 +193,16 @@ SQL_REGISTRATION_PENDING = '''select course_id from registration where nuid = %(
 SQL_REGISTRATION_FAILED = '''select course_id, grade from registration where nuid = %(nuid)s and status = 'failed' '''
 SQL_REGISTRATION_APPROVED = '''select course_id from registration where nuid = %(nuid)s and status = 'approved' '''
 def getStudentSearchDetails(request):
-    nuid = request.GET.get('nuid')
-    advisor_id = request.GET.get('advisor')
+    nuid = coerce_int(request.GET.get('nuid'))
+    advisor_id = coerce_int(request.GET.get('advisor'))
     details = {
         'nuid': nuid,
         'advisor_id': advisor_id,
     }
-    advisor_info = getAdvisorInfoById(advisor_id)
+    if advisor_id is None:
+        raise Http404('Advisor not found')
+
+    advisor_info = getAdvisorInfoOr404(advisor_id)
     student_info = getStudentInfoByNuid(nuid)
     if len(student_info) == 0:
         context = {
@@ -221,28 +220,29 @@ def getStudentSearchDetails(request):
         'student_name': student_info[0][1],
         'student_email': student_info[0][2],
         "student_grade": student_info[0][10],
-        'student_campus': campus_info[0][1],
-        'student_college': college_info[0][1],
-        'student_department': department_info[0][1],
+        'student_campus': campus_info[0][1] if campus_info else '',
+        'student_college': college_info[0][1] if college_info else '',
+        'student_department': department_info[0][1] if department_info else '',
         'student_hours': student_info[0][11],
         'advisor_id': advisor_id,
         'advisor_name': advisor_info[0][1],
         'stu_advisor_id': stu_advisor_id,
-        'stu_advisor_name': stu_advisor_info[0][1],
+        'stu_advisor_name': stu_advisor_info[0][1] if stu_advisor_info else '',
         'pending_courses': [],
         'approved_courses': [],
         'completed_courses': [],
         'failed_courses': []
     }
     cursor= connection.cursor()
-    val = {'nuid': int(nuid)}
+    val = {'nuid': nuid}
     cursor.execute(SQL_REGISTRATION_PENDING, val)
     results = cursor.fetchall()
     if results:
         for r in results:
             course_id = r[0]
             course_info = getCourseInfoByCourseId(r[0])
-            details['pending_courses'].append({'course_id':course_id, 'course_name':course_info[0][1]})
+            if course_info:
+                details['pending_courses'].append({'course_id':course_id, 'course_name':course_info[0][1]})
 
     cursor.execute(SQL_REGISTRATION_APPROVED, val)
     results = cursor.fetchall()
@@ -250,7 +250,8 @@ def getStudentSearchDetails(request):
         for r in results:
              course_id = r[0]
              course_info = getCourseInfoByCourseId(r[0])
-             details['approved_courses'].append({'course_id':course_id, 'course_name':course_info[0][1]})
+             if course_info:
+                 details['approved_courses'].append({'course_id':course_id, 'course_name':course_info[0][1]})
 
     cursor.execute(SQL_REGISTRATION_COMPLETED, val)
     results = cursor.fetchall()
@@ -258,7 +259,8 @@ def getStudentSearchDetails(request):
         for r in results:
             course_id = r[0]
             course_info = getCourseInfoByCourseId(r[0])
-            details['completed_courses'].append({'course_id':course_id, 'course_name':course_info[0][1], 'course_gpa': r[1]})
+            if course_info:
+                details['completed_courses'].append({'course_id':course_id, 'course_name':course_info[0][1], 'course_gpa': r[1]})
 
     cursor.execute(SQL_REGISTRATION_FAILED, val)
     results = cursor.fetchall()
@@ -266,7 +268,8 @@ def getStudentSearchDetails(request):
         for r in results:
             course_id = r[0]
             course_info = getCourseInfoByCourseId(r[0])
-            details['failed_courses'].append({'course_id':course_id, 'course_name':course_info[0][1], 'course_gpa': r[1]})
+            if course_info:
+                details['failed_courses'].append({'course_id':course_id, 'course_name':course_info[0][1], 'course_gpa': r[1]})
 
     context = {
         "data": details
@@ -276,11 +279,11 @@ def getStudentSearchDetails(request):
 
 SQL_ADVISOR_STUS_LIST = '''select * from student where advisor = %(advisor)s '''
 def getMyStudentsList(request, advisor_id):
+    advisor_info = getAdvisorInfoOr404(advisor_id)
     cursor= connection.cursor()
     var = {'advisor': int(advisor_id)}
     cursor.execute(SQL_ADVISOR_STUS_LIST, var)
     students = cursor.fetchall()
-    advisor_info = getAdvisorInfoById(advisor_id)
     results = {
         'advisor_id': int(advisor_id),
         'advisor_name': advisor_info[0][1],
@@ -294,7 +297,7 @@ def getMyStudentsList(request, advisor_id):
 
 def getAdvisorCourseSearch(request, advisor_id):
     res = {}
-    advisor_info = getAdvisorInfoById(advisor_id)
+    advisor_info = getAdvisorInfoOr404(advisor_id)
     res['advisor_name'] = advisor_info[0][1]
     res['advisor_id'] = advisor_id
     context = {
@@ -304,13 +307,16 @@ def getAdvisorCourseSearch(request, advisor_id):
 
 SQL_COURSE_TAS = '''select * from ta where course_id = %(course_id)s '''
 def getCourseSearchDetails(request):
-     advisor_id = request.GET.get('advisor_id')
-     advisor_info = getAdvisorInfoById(advisor_id)
+     advisor_id = coerce_int(request.GET.get('advisor_id'))
+     if advisor_id is None:
+         raise Http404('Advisor not found')
+
+     advisor_info = getAdvisorInfoOr404(advisor_id)
      results = {
         'advisor_id': advisor_id,
         'advisor_name': advisor_info[0][1],
      }
-     course_id = request.GET.get('course_id')
+     course_id = coerce_int(request.GET.get('course_id'))
      results['course_id'] = course_id
      course_info = getCourseInfoByCourseId(course_id)
      if len(course_info) == 0:
@@ -319,22 +325,21 @@ def getCourseSearchDetails(request):
         }
         return render(request, 'advisor/advisor_course_details.html', context)
 
-     if course_info:
-        results['course_name'] = course_info[0][1]
-        results['instructor_id'] = course_info[0][2]
-        results['meeting_time'] = course_info[0][3]
-        results['max_num_of_students'] = course_info[0][4]
-        results['semester'] = course_info[0][5]
-        results['semester_hrs'] = course_info[0][6]
-        results['registered_num_of_stud'] = course_info[0][7]
-        results['department_id'] = course_info[0][8]
-        results['campusid'] = course_info[0][9]
-        results['building_id'] = course_info[0][10]
-        results['room_id'] = course_info[0][11]
-        instructor_id = course_info[0][2]
-        instructor_info = getInstructorByInstructorId(instructor_id)
-        results['instructor_name'] = instructor_info[0][3]
-     val = {'course_id': int(course_id)}
+     results['course_name'] = course_info[0][1]
+     results['instructor_id'] = course_info[0][2]
+     results['meeting_time'] = course_info[0][3]
+     results['max_num_of_students'] = course_info[0][4]
+     results['semester'] = course_info[0][5]
+     results['semester_hrs'] = course_info[0][6]
+     results['registered_num_of_stud'] = course_info[0][7]
+     results['department_id'] = course_info[0][8]
+     results['campusid'] = course_info[0][9]
+     results['building_id'] = course_info[0][10]
+     results['room_id'] = course_info[0][11]
+     instructor_id = course_info[0][2]
+     instructor_info = getInstructorByInstructorId(instructor_id)
+     results['instructor_name'] = instructor_info[0][3] if instructor_info else ''
+     val = {'course_id': course_id}
      cursor = connection.cursor()
      cursor.execute(SQL_COURSE_TAS, val)
      tas = cursor.fetchall()
@@ -344,9 +349,3 @@ def getCourseSearchDetails(request):
         'data': results
      }
      return render(request, 'advisor/advisor_course_details.html', context)
-
-
-
-
-
-
