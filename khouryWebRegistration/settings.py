@@ -60,6 +60,22 @@ MIDDLEWARE = [
 ]
 CORS_ORIGIN_ALLOW_ALL = True
 
+# The application authenticates students, advisors and admins against its own
+# tables and keeps the resulting identity in the session (see
+# studentInfo.access_control).  Without an explicit default, DRF would fall back
+# to AllowAny and expose every API endpoint to anonymous callers.
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'studentInfo.access_control.IsAdvisorSession',
+    ],
+}
+
+# Session cookie hardening for the identity established at sign in.
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_SAMESITE = 'Lax'
+
 ROOT_URLCONF = 'khouryWebRegistration.urls'
 
 TEMPLATES = [

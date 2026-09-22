@@ -1,8 +1,11 @@
 from django.shortcuts import render
 from .models import Student, Registration
+from django.utils.decorators import method_decorator
 from django.views.generic import ListView, DetailView
 from django.db import connection
 from django.http import HttpResponse
+
+from .access_control import admin_required, student_required
 
 
 def testmysql(request):
@@ -10,12 +13,15 @@ def testmysql(request):
 
 
 # StudentList class should be deleted later on.
+# It exposes every student row, so it is restricted to the admin back office.
+@method_decorator(admin_required, name='dispatch')
 class StudentList(ListView):
     template_name = 'student/student_list.html'
     model = Student
 
 
 # Student home page.
+@method_decorator(student_required, name='dispatch')
 class StudentHome(DetailView):
     template_name = 'student/student_home.html'
     model = Student
@@ -24,11 +30,13 @@ class StudentHome(DetailView):
 # Student main page after logging in.
 
 
+@method_decorator(student_required, name='dispatch')
 class StudentDetails(DetailView):
     template_name = 'student/student_profile.html'
     model = Student
 
 
+@student_required
 def getStudentNotification(request, student_id):
     res = {
         'student_id': int(student_id),
@@ -46,6 +54,7 @@ def getStudentNotification(request, student_id):
     return render(request, 'student/student_notification.html', context)
 
 
+@student_required
 def dropCourse(request, student_id):
     cursor = connection.cursor()
     course_currently_taking = getCourseCurrentlyTakingOrPending(student_id)
@@ -87,6 +96,7 @@ def dropCourse(request, student_id):
     return render(request, 'student/drop_course.html', context)
 
 
+@student_required
 def getDegreeAudit(request, student_id):
     cursor = connection.cursor()
     res = {
@@ -142,6 +152,7 @@ def getDegreeAudit(request, student_id):
     return render(request, 'student/degree_audit.html', context)
 
 
+@student_required
 def getRegistrationInfo(request, student_id):
     cursor = connection.cursor()
     for c in getCourseNumList():

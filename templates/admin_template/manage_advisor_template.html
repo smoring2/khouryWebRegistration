@@ -37,7 +37,7 @@
                                     <td>
                                         <a href="{% url 'edit_advisor' advisor.employee_id %}" class="btn btn-primary">Edit</a>
                                         
-                                        <a href="{% url 'delete_advisor' advisor.employee_id %}" class="btn btn-danger">Delete</a>
+                                        <form method="post" action="{% url 'delete_advisor' advisor.employee_id %}" class="d-inline">{% csrf_token %}<button type="submit" class="btn btn-danger">Delete</button></form>
                                     
                                     </td>
                                 </tr>

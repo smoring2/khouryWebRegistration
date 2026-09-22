@@ -35,6 +35,7 @@ urlpatterns = [
     path('advisorLoging', signin_view.advisor_login, name='advisor_login'),
     path('admin/signIn', signin_view.admin_login_page, name='admin_login_page'),
     path('adminLoging', signin_view.admin_login, name='admin_login'),
+    path('signOut', signin_view.sign_out, name='sign_out'),
 
     #student
     path('student/', student_views.StudentList.as_view(), name='student_list'),

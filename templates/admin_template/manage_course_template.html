@@ -51,7 +51,7 @@
                                     <td>{{course.date}}</td>
                                     <td>
                                         <a href="{% url 'edit_course' course.course_id %}" class="btn btn-primary">Edit</a>
-                                        <a href="{% url 'delete_course' course.course_id %}" class="btn btn-danger">Delete</a> 
+                                        <form method="post" action="{% url 'delete_course' course.course_id %}" class="d-inline">{% csrf_token %}<button type="submit" class="btn btn-danger">Delete</button></form> 
                                     </td>
                                 </tr>
                                 {% endfor %}
