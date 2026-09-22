@@ -4,6 +4,8 @@ from django.views.generic import ListView, DetailView
 from django.db import connection
 from django.http import HttpResponse
 
+from .validators import get_int, html_bad_request_guard
+
 
 def testmysql(request):
     return render(request, 'home.html')
@@ -46,12 +48,15 @@ def getStudentNotification(request, student_id):
     return render(request, 'student/student_notification.html', context)
 
 
+@html_bad_request_guard
 def dropCourse(request, student_id):
     cursor = connection.cursor()
     course_currently_taking = getCourseCurrentlyTakingOrPending(student_id)
     if request.method == 'POST':
         nuid = student_id
-        course_id = int(request.POST['course_number'])
+        # Validate before coercing: request.POST['course_number'] raises
+        # MultiValueDictKeyError when absent and ValueError when non-numeric.
+        course_id = get_int(request.POST, 'course_number')
 
         advisor_id = getAdvisorByStudentId(student_id)
 
@@ -142,6 +147,7 @@ def getDegreeAudit(request, student_id):
     return render(request, 'student/degree_audit.html', context)
 
 
+@html_bad_request_guard
 def getRegistrationInfo(request, student_id):
     cursor = connection.cursor()
     for c in getCourseNumList():
@@ -149,7 +155,7 @@ def getRegistrationInfo(request, student_id):
     # Submit course registration form.
     if request.method == 'POST':
         nuid = student_id
-        course_id = int(request.POST['course_number'])
+        course_id = get_int(request.POST, 'course_number')
         advisor_id = getAdvisorByStudentId(student_id)
 
         cursor.execute('''SELECT * from registration''')
@@ -514,29 +520,58 @@ def getInstructorNameById(instructor_id):
 
 
 # Util Library
+DATE_MAP = {'M': 1, 'T': 2, 'W': 3, 'Th': 4, 'F': 5, 'S': 7}
+
+
+def isMissing(value):
+    """True when a value is absent.
+
+    getCourseTime() stringifies its results, so a NULL column arrives here as
+    the literal string 'None' rather than None.
+    """
+    return value is None or str(value).strip() in ('', 'None')
+
+
 def timeConversion(date, time):
-    date_map = {'M': 1, 'T': 2, 'W': 3, 'Th': 4, 'F': 5, 'S': 6, 'S': 7}
+    """Convert a weekday/time pair to minutes, or None when unparseable.
+
+    Returning None instead of raising keeps an unmapped weekday or malformed
+    time from bubbling up as a KeyError/ValueError (and a debug traceback).
+    """
+    if isMissing(date) or isMissing(time):
+        return None
+
+    day = DATE_MAP.get(str(date).strip())
+    if day is None:
+        return None
+
     # Convert to seconds.
     one_day = 24 * 60
-    hour = int(time[0 : 2])
-    min = int(time[3 : 5])
-    time_to_min = one_day * (date_map[date] - 1) + hour * 60 + min
+    try:
+        hour = int(str(time)[0 : 2])
+        min = int(str(time)[3 : 5])
+    except (TypeError, ValueError):
+        return None
+    time_to_min = one_day * (day - 1) + hour * 60 + min
 
     return time_to_min
 
 
 def isConflict(student_id, course_id):
     course_time = getCourseTime(course_id)
-    if course_time[1] is None:
+    abs_course_time = timeConversion(course_time[1], course_time[0])
+    if abs_course_time is None:
         return False
 
-    abs_course_time = timeConversion(course_time[1], course_time[0])
     reg_courses_time_interval = []
 
     for interval in getAllRegistrationInfo():
         if interval[0] == student_id and (interval[4] == 'pending' or interval[4] == 'approved'):
             course = interval[1]
-            ct = timeConversion(getCourseTime(course)[1], getCourseTime(course)[0])
+            registered_time = getCourseTime(course)
+            ct = timeConversion(registered_time[1], registered_time[0])
+            if ct is None:
+                continue
             reg_courses_time_interval.append([ct, ct + 180])
 
     for ea in reg_courses_time_interval:

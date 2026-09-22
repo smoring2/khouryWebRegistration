@@ -57,6 +57,9 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
+    # Keeps unhandled view exceptions from rendering Django's technical 500
+    # page (source, frame locals, SQL, settings) to the caller.
+    'khouryWebRegistration.middleware.SuppressTracebackMiddleware',
 ]
 CORS_ORIGIN_ALLOW_ALL = True
 

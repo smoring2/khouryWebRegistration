@@ -5,19 +5,24 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 
 from django.db import connection
+
+from .validators import (api_bad_request_guard, first_row, get_float,
+                         get_int, get_str, to_int)
 NO_PERMISSION_ALERT = "No records.\n Or No permission. This is not your student!"
 SUCCEED_ALERT = "Succeed"
 ERROR_ALERT = "Something wrong! Please try again!"
+NOT_FOUND_ALERT = "No matching record found!"
 SQL_COURSE_ADD_NUM = '''update course set registered_num_of_stud = registered_num_of_stud + 1 where course_id = %(course_id)s '''
 SQL_COURSE_INFO = '''select * from course where course_id = %(course_id)s '''
 SQL_REGISTRATION_APPROVAL = '''update registration set status = 'approved'
 where nuid = %(nuid)s and status = 'pending' and advisor_id = %(advisor_id)s '''
 SQL_REGISTRATION_PENDING_LIST = '''select * from registration where nuid = %(nuid)s and status = 'pending' and advisor_id = %(advisor_id)s'''
 @api_view(['GET'])
+@api_bad_request_guard
 def approvePendingRequest(request):
-    nuid = request.query_params.get('nuid')
-    advisor_id = request.query_params.get('advisor_id')
-    val = {'nuid': int(nuid), 'advisor_id': int(advisor_id)}
+    nuid = get_int(request.query_params, 'nuid')
+    advisor_id = get_int(request.query_params, 'advisor_id')
+    val = {'nuid': nuid, 'advisor_id': advisor_id}
     message= ""
     try:
         cursor= connection.cursor()
@@ -40,11 +45,13 @@ SQL_REGISTRATION_REJECTION = '''update registration set status = 'rejected'
 where nuid= %(nuid)s and advisor_id = %(advisor_id)s and ( status = 'pending' or status ='approved') '''
 SQL_PENDING_REJECTION = '''delete from registration where nuid= %(nuid)s and advisor_id = %(advisor_id)s and status = 'pending' '''
 @api_view(['GET'])
+@api_bad_request_guard
 def rejectPendingRequest(request):
-    nuid = request.query_params.get('nuid')
-    advisor_id = request.query_params.get('advisor_id')
+    val = {
+        'nuid': get_int(request.query_params, 'nuid'),
+        'advisor_id': get_int(request.query_params, 'advisor_id'),
+    }
     cursor= connection.cursor()
-    val = {'nuid': int(nuid), 'advisor_id': int(advisor_id)}
     message="succeed"
     try:
         cursor.execute(SQL_PENDING_REJECTION, val)
@@ -63,11 +70,13 @@ where nuid= %(nuid)s and course_id = %(course_id)s and advisor_id = %(advisor_id
 SQL_APPROVED_REJECTION = '''delete from registration where nuid= %(nuid)s and advisor_id = %(advisor_id)s and course_id = %(course_id)s and status = 'approved' '''
 SQL_REGISTERED_NUM_MINUS = '''update course set registered_num_of_stud = registered_num_of_stud - 1 where course_id = %(course_id)s '''
 @api_view(['GET'])
+@api_bad_request_guard
 def removeOneApprovedCourse(request):
-    nuid = request.query_params.get('nuid')
-    course_id = request.query_params.get('course_id')
-    advisor_id = request.query_params.get('advisor_id')
-    val = {'nuid': int(nuid), 'course_id': int(course_id), 'advisor_id': int(advisor_id)}
+    val = {
+        'nuid': get_int(request.query_params, 'nuid'),
+        'course_id': get_int(request.query_params, 'course_id'),
+        'advisor_id': get_int(request.query_params, 'advisor_id'),
+    }
     cursor= connection.cursor()
     message = ""
     try:
@@ -90,53 +99,59 @@ where nuid= %(nuid)s and course_id = %(course_id)s and advisor_id = %(advisor_id
 SQL_REGISTRATION_INSERT = '''insert into registration values
 (%(nuid)s, %(course_id)s, %(advisor_id)s, null, 'approved')'''
 @api_view(['GET'])
+@api_bad_request_guard
 def addOneApprovedCourse(request):
-    nuid = request.query_params.get('nuid')
-    course_id = request.query_params.get('course_id')
-    advisor_id = request.query_params.get('advisor_id')
+    nuid = get_int(request.query_params, 'nuid')
+    course_id = get_int(request.query_params, 'course_id')
+    advisor_id = get_int(request.query_params, 'advisor_id')
     message = addApprovedCourse(nuid, course_id, advisor_id)
     return JsonResponse({'message': message}, safe=False)
 
 def addApprovedCourse(nuid, course_id, advisor_id):
     print('addApprovedCourse')
+    nuid = to_int(nuid, 'nuid')
+    course_id = to_int(course_id, 'course_id')
+    advisor_id = to_int(advisor_id, 'advisor_id')
     cursor= connection.cursor()
-    val = {'nuid': int(nuid), 'course_id': int(course_id), 'advisor_id': int(advisor_id)}
-    print(val)
+    val = {'nuid': nuid, 'course_id': course_id, 'advisor_id': advisor_id}
     message = str(course_id) + " added successfully"
-    cursor.execute('''SElect * from student where nuid = %(nuid)s ''', {'nuid': int(nuid)})
-    student_info = cursor.fetchall()
-    if student_info:
-        stu_advisor = int(student_info[0][8])
+    try:
+        cursor.execute('''SElect * from student where nuid = %(nuid)s ''', {'nuid': nuid})
+        student_info = cursor.fetchall()
+        student_row = first_row(student_info)
+        if student_row is None or student_row[8] is None:
+            return NO_PERMISSION_ALERT
+        stu_advisor = to_int(student_row[8], 'advisor')
         print(stu_advisor)
-        if stu_advisor == int(advisor_id):
-            try:
-                cursor.execute(SQL_REGISTRATION_INFO, val)
-                registration_info = cursor.fetchall()
-                if len(registration_info) > 0 and (registration_info[0][4] == 'completed' or registration_info[0][4] == 'failed'):
-                    message = "Student already has taken this course"
-                else:
-                    cursor.execute(SQL_COURSE_INFO, val)
-                    c_info = cursor.fetchall()
-                    print(c_info)
-                    if c_info:
-                        max_num_of_stus = int(c_info[0][4])
-                        reg_num_of_stus = int(c_info[0][7])
-                        if max_num_of_stus > reg_num_of_stus:
-                            if registration_info:
-                                cursor.execute(SQL_REGISTRATION_ADD, val)
-                            else:
-                                cursor.execute(SQL_REGISTRATION_INSERT, val)
-                            cursor.execute(SQL_COURSE_ADD_NUM, val)
+        if stu_advisor != advisor_id:
+            return NO_PERMISSION_ALERT
+        try:
+            cursor.execute(SQL_REGISTRATION_INFO, val)
+            registration_info = cursor.fetchall()
+            if len(registration_info) > 0 and (registration_info[0][4] == 'completed' or registration_info[0][4] == 'failed'):
+                message = "Student already has taken this course"
+            else:
+                cursor.execute(SQL_COURSE_INFO, val)
+                c_info = cursor.fetchall()
+                print(c_info)
+                if c_info:
+                    max_num_of_stus = to_int(c_info[0][4], 'max_num_of_students')
+                    reg_num_of_stus = to_int(c_info[0][7], 'registered_num_of_stud')
+                    if max_num_of_stus > reg_num_of_stus:
+                        if registration_info:
+                            cursor.execute(SQL_REGISTRATION_ADD, val)
                         else:
-                            message="This course " + str(course_id) + " is full!"
+                            cursor.execute(SQL_REGISTRATION_INSERT, val)
+                        cursor.execute(SQL_COURSE_ADD_NUM, val)
                     else:
-                        message = str(course_id) + " not found"
-            except Exception as e:
-                print(e)
-                message = "Something wrong with "  +  str(course_id) + "! Please try again"
-        else:
-            message = NO_PERMISSION_ALERT
-    cursor.close()
+                        message="This course " + str(course_id) + " is full!"
+                else:
+                    message = str(course_id) + " not found"
+        except Exception as e:
+            print(e)
+            message = "Something wrong with "  +  str(course_id) + "! Please try again"
+    finally:
+        cursor.close()
     print(message)
     return message
 
@@ -146,13 +161,16 @@ SQL_STUDENT_GPA_UPDATE = '''update student set grade = %(grade)s where nuid = %(
 SQL_STUDENT_GPA_CAL = '''SELECT avg(grade) from registration where grade is not null
 group by nuid having nuid = %(nuid)s'''
 @api_view(['GET'])
+@api_bad_request_guard
 def updateGPA(request):
-    nuid = request.query_params.get('nuid')
-    course_id = request.query_params.get('course_id')
-    advisor_id = request.query_params.get('advisor_id')
-    grade = request.query_params.get('grade')
+    nuid = get_int(request.query_params, 'nuid')
+    val = {
+        'nuid': nuid,
+        'course_id': get_int(request.query_params, 'course_id'),
+        'advisor_id': get_int(request.query_params, 'advisor_id'),
+        'grade': get_float(request.query_params, 'grade'),
+    }
     cursor= connection.cursor()
-    val = {'nuid': int(nuid), 'course_id': int(course_id), 'advisor_id': int(advisor_id), 'grade': float(grade)}
     message = "succeed"
     try:
         cursor.execute(SQL_REGISTRATION_UPDATE_GPA, val)
@@ -164,7 +182,7 @@ def updateGPA(request):
             cursor.execute(SQL_STUDENT_GPA_CAL, val)
             gpas = cursor.fetchall()
             curr_gpa = gpas[0][0]
-            val = {'grade': float(curr_gpa), 'nuid' : int(nuid)}
+            val = {'grade': float(curr_gpa), 'nuid' : nuid}
             cursor.execute(SQL_STUDENT_GPA_UPDATE, val)
     except Exception as e:
         print(e)
@@ -176,41 +194,34 @@ def updateGPA(request):
 SQL_STUDENT_INSERT = ''' insert into student (nuid, name, email, bdate, campusid, collegeid, department_id, phone, advisor, semesterhour, password) values (%(nuid)s, %(name)s, %(email)s,  %(bdate)s, %(campus)s, %(college)s, %(department)s, %(phone)s, %(advisor)s, 8, %(password)s) '''
 SQL_NUID_CHECK = '''select * from student where nuid = %(nuid)s '''
 @api_view(['GET'])
+@api_bad_request_guard
 def insertStudent(request):
-    print(request.query_params)
-    nuid = request.query_params.get('nuid')
+    nuid = get_int(request.query_params, 'nuid')
     cursor= connection.cursor()
-    val = {'nuid': int(nuid)}
-    cursor.execute(SQL_NUID_CHECK, val)
-    print("test-mysql")
-    res = cursor.fetchall()
+    try:
+        cursor.execute(SQL_NUID_CHECK, {'nuid': nuid})
+        res = cursor.fetchall()
+    except Exception as e:
+        print(e)
+        cursor.close()
+        return JsonResponse({'message': ERROR_ALERT, "succeed": 0}, safe=False)
     if res:
+        cursor.close()
         message = "This NUID has been taken. Please use choose different one"
         return JsonResponse({'message': message, "succeed": 0}, safe=False)
 
-    name = request.query_params.get('name')
-    email = request.query_params.get('email')
-    bdate = request.query_params.get('bdate')
-    campus = request.query_params.get('campus')
-    college = request.query_params.get('college')
-    department = request.query_params.get('department')
-    phone = request.query_params.get('phone')
-    advisor = request.query_params.get('advisor_id')
-    password = request.query_params.get('password')
     val = {
-        'nuid' : int(nuid),
-        'name': name,
-        'email': email,
-        'bdate': bdate,
-        'campus': campus,
-        'college': college,
-        'department': department,
-        'phone': phone,
-        'advisor':advisor,
-        'password': password
+        'nuid' : nuid,
+        'name': get_str(request.query_params, 'name', max_length=50),
+        'email': get_str(request.query_params, 'email', max_length=100),
+        'bdate': get_str(request.query_params, 'bdate', required=False, max_length=32),
+        'campus': get_int(request.query_params, 'campus', required=False),
+        'college': get_int(request.query_params, 'college', required=False),
+        'department': get_int(request.query_params, 'department', required=False),
+        'phone': get_str(request.query_params, 'phone', required=False, max_length=15),
+        'advisor': get_int(request.query_params, 'advisor_id', required=False),
+        'password': get_str(request.query_params, 'password', max_length=20),
     }
-    print("test-val")
-    print(val)
     message = SUCCEED_ALERT
     succeed = 0
     try:
@@ -224,11 +235,13 @@ def insertStudent(request):
 
 SQL_STUDENT_UPDATE_HOURS = '''update student set semesterhour= %(hours)s where nuid = %(nuid)s '''
 @api_view(['GET'])
+@api_bad_request_guard
 def updateHours(request):
-    nuid = request.query_params.get('nuid')
-    hours = request.query_params.get('hours')
+    val = {
+        'nuid': get_int(request.query_params, 'nuid'),
+        'hours': get_int(request.query_params, 'hours', min_value=0),
+    }
     cursor= connection.cursor()
-    val = {'nuid': int(nuid), 'hours': int(hours)}
     message = ''
     try:
         cursor.execute(SQL_STUDENT_UPDATE_HOURS, val)
@@ -242,11 +255,13 @@ def updateHours(request):
 
 SQL_ADVISOR_UPDATE_PHONE = '''update advisor set phone = %(phone)s where employee_id = %(advisor_id)s '''
 @api_view(['GET'])
+@api_bad_request_guard
 def updatePhone(request):
-    advisor_id = request.query_params.get("advisor_id")
-    phone = request.query_params.get('phone')
+    val = {
+        'advisor_id': get_int(request.query_params, 'advisor_id'),
+        'phone': get_int(request.query_params, 'phone'),
+    }
     cursor= connection.cursor()
-    val = {'advisor_id': int(advisor_id), 'phone': int(phone)}
     message = SUCCEED_ALERT
     try:
         cursor.execute(SQL_ADVISOR_UPDATE_PHONE, val)
@@ -259,12 +274,14 @@ def updatePhone(request):
 SQL_COURSE_ROOM = '''update course set campusid = %(campusid)s,
 building_id = %(building_id)s, room_id = %(room_id)s where course_id = %(course_id)s '''
 @api_view(['GET'])
+@api_bad_request_guard
 def saveClassRoom(request):
-    course_id = request.query_params.get('course_id')
-    campusid = request.query_params.get('campusid')
-    building_id = request.query_params.get('building_id')
-    room_id = request.query_params.get('room_id')
-    val = {'course_id': int(course_id), 'campusid': int(campusid), 'building_id': int(building_id), 'room_id': int(room_id)}
+    val = {
+        'course_id': get_int(request.query_params, 'course_id'),
+        'campusid': get_int(request.query_params, 'campusid'),
+        'building_id': get_int(request.query_params, 'building_id'),
+        'room_id': get_int(request.query_params, 'room_id'),
+    }
     cursor = connection.cursor()
     message = ''
     try:
@@ -279,9 +296,9 @@ def saveClassRoom(request):
 
 SQL_BUILDING_LIST = '''select * from building where campusid = %(campusid)s '''
 @api_view(['GET'])
+@api_bad_request_guard
 def getBuildingList(request):
-    campusid = request.query_params.get('campusid')
-    val = {'campusid': int(campusid)}
+    val = {'campusid': get_int(request.query_params, 'campusid')}
     cursor = connection.cursor()
     message = ''
     buildings = {}
@@ -297,10 +314,12 @@ def getBuildingList(request):
 
 SQL_ROOM_LIST = '''select * from room where campusid = %(campusid)s and building_id = %(building_id)s '''
 @api_view(['GET'])
+@api_bad_request_guard
 def getRoomList(request):
-    campusid = request.query_params.get('campusid')
-    building_id = request.query_params.get('building_id')
-    val = {'campusid': int(campusid), 'building_id': int(building_id)}
+    val = {
+        'campusid': get_int(request.query_params, 'campusid'),
+        'building_id': get_int(request.query_params, 'building_id'),
+    }
     cursor = connection.cursor()
     message = ''
     rooms = {}
@@ -318,47 +337,60 @@ SQL_STUDENT_INFO = '''select * from student where nuid = %(nuid)s '''
 SQL_TA_INSERT = '''insert into ta values (%(nuid)s, %(name)s, %(email)s, %(campusid)s, %(collegeid)s,
 %(department_id)s, %(phone)s, %(advisor)s, %(photo)s, %(grade)s, %(semester_hour)s, %(course_id)s) '''
 @api_view(['GET'])
+@api_bad_request_guard
 def addTaForCourse(request):
-    nuid = request.query_params.get('ta_nuid')
-    course_id = request.query_params.get('course_id')
-    val = {'nuid': int(nuid)}
+    nuid = get_int(request.query_params, 'ta_nuid')
+    course_id = get_int(request.query_params, 'course_id')
     cursor = connection.cursor()
-    cursor.execute(SQL_STUDENT_INFO, val)
-    student_info = cursor.fetchall()
-    val = {
-        'nuid': int(nuid),
-        'name': student_info[0][1],
-        'email': student_info[0][2],
-        'campusid': student_info[0][4],
-        'collegeid': student_info[0][5],
-        'department_id': student_info[0][6],
-        'phone': student_info[0][7],
-        'advisor': student_info[0][8],
-        'photo': student_info[0][9],
-        'grade': student_info[0][10],
-        'semester_hour': student_info[0][11],
-        'course_id': int(course_id)
-    }
     message = ''
-
     try:
-        cursor.execute(SQL_TA_INSERT, val)
-        counts = cursor.rowcount
-        if counts > 0:
-            message = SUCCEED_ALERT
-        else :
+        try:
+            cursor.execute(SQL_STUDENT_INFO, {'nuid': nuid})
+            student_row = first_row(cursor.fetchall())
+        except Exception as e:
+            print(e)
+            return JsonResponse({'message': ERROR_ALERT}, safe=False)
+
+        if student_row is None:
+            return JsonResponse({'message': NOT_FOUND_ALERT}, status=404, safe=False)
+
+        val = {
+            'nuid': nuid,
+            'name': student_row[1],
+            'email': student_row[2],
+            'campusid': student_row[4],
+            'collegeid': student_row[5],
+            'department_id': student_row[6],
+            'phone': student_row[7],
+            'advisor': student_row[8],
+            'photo': student_row[9],
+            'grade': student_row[10],
+            'semester_hour': student_row[11],
+            'course_id': course_id
+        }
+
+        try:
+            cursor.execute(SQL_TA_INSERT, val)
+            counts = cursor.rowcount
+            if counts > 0:
+                message = SUCCEED_ALERT
+            else :
+                message = ERROR_ALERT
+        except  Exception as e:
+            print(e)
             message = ERROR_ALERT
-    except  Exception as e:
-        print(e)
-        message = ERROR_ALERT
+    finally:
+        cursor.close()
     return JsonResponse({'message': message}, safe=False)
 
 SQL_TA_REMOVE = ''' delete from ta where nuid = %(nuid)s and course_id = %(course_id)s '''
 @api_view(['GET'])
+@api_bad_request_guard
 def removeTaForCourse(request):
-    nuid = request.query_params.get('ta_nuid')
-    course_id = request.query_params.get('course_id')
-    val = {'nuid': int(nuid), 'course_id': int(course_id)}
+    val = {
+        'nuid': get_int(request.query_params, 'ta_nuid'),
+        'course_id': get_int(request.query_params, 'course_id'),
+    }
     cursor = connection.cursor()
     message = ''
 
@@ -371,6 +403,6 @@ def removeTaForCourse(request):
             message = ERROR_ALERT
     except  Exception as e:
         print(e)
-        message = failed
+        message = ERROR_ALERT
+    cursor.close()
     return JsonResponse({'message': message}, safe=False)
-
