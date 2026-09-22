@@ -1,3 +1,5 @@
+import logging
+
 from django.contrib import messages
 from django.core.files.storage import FileSystemStorage
 from django.shortcuts import (HttpResponse, HttpResponseRedirect,
@@ -9,6 +11,8 @@ from django.views.generic import UpdateView
 
 from .admin_form import *
 from .models import *
+
+logger = logging.getLogger(__name__)
 
 
 def admin_home(request):
@@ -46,7 +50,8 @@ def add_advisor(request):
                 return redirect(reverse('add_advisor'))
 
             except Exception as e:
-                messages.error(request, "Could Not Add " + str(e))
+                logger.exception("Could not add advisor")
+                messages.error(request, "Could Not Add")
         else:
             messages.error(request, "Please fulfil all requirements")
 
@@ -77,7 +82,8 @@ def add_student(request):
                 messages.success(request, "Successfully Added")
                 return redirect(reverse('add_student'))
             except Exception as e:
-                messages.error(request, "Could Not Add: " + str(e))
+                logger.exception("Could not add student")
+                messages.error(request, "Could Not Add")
         else:
             messages.error(request, "Could Not Add: ")
     return render(request, 'admin_template/add_student_template.html', context)
@@ -180,17 +186,21 @@ def edit_advisor(request, employee_id):
                 user.phone = phone
                 user.department = department
                 if password != None:
-                    user.set_password(password)
+                    user.password = password
                 user.save()
                 advisor.save()
                 messages.success(request, "Successfully Updated")
                 return redirect(reverse('edit_advisor', args=[employee_id]))
             except Exception as e:
-                messages.error(request, "Could Not Update " + str(e))
+                logger.exception("Could not update advisor")
+                messages.error(request, "Could Not Update")
         else:
             messages.error(request, "Please fill form properly")
-    else:
-        return render(request, "admin_template/edit_advisor_template.html", context)
+
+    # Every branch must return an HttpResponse. Falling through returned None,
+    # which made Django raise ValueError and render a debug page containing the
+    # submitted password in the frame locals.
+    return render(request, "admin_template/edit_advisor_template.html", context)
 
 
 def edit_student(request, nuid):
@@ -229,17 +239,19 @@ def edit_student(request, nuid):
                 user.grade = grade
                 user.semesterhour = semesterhour
                 if password != None:
-                    user.set_password(password)
+                    user.password = password
                 user.save()
                 student.save()
                 messages.success(request, "Successfully Updated")
                 return redirect(reverse('edit_student', args=[nuid]))
             except Exception as e:
-                messages.error(request, "Could Not Update " + str(e))
+                logger.exception("Could not update student")
+                messages.error(request, "Could Not Update")
         else:
             messages.error(request, "Please Fill Form Properly!")
-    else:
-        return render(request, "admin_template/edit_student_template.html", context)
+
+    # Every branch must return an HttpResponse (see edit_advisor above).
+    return render(request, "admin_template/edit_student_template.html", context)
 
 
 def edit_course(request, course_id):
