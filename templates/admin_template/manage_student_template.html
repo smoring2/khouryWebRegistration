@@ -47,7 +47,9 @@
                                     <td>{{student.semesterhour}}</td>
                                     
                                     <td><a href="{% url 'edit_student' student.nuid %}" class="btn btn-primary">Edit</a>
-                                        <a href="{% url 'delete_student' student.nuid %}" class="btn btn-danger">Delete</a>
+                                        <form action="{% url 'delete_student' student.nuid %}" method="post" class="d-inline">{% csrf_token %}
+                                            <button type="submit" class="btn btn-danger">Delete</button>
+                                        </form>
 
                                     </td>
                                 </tr>

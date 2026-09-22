@@ -1,4 +1,6 @@
 from django.shortcuts import render
+from .access_control import (AdminRequiredMixin, StudentSelfRequiredMixin,
+                             student_self_required)
 from .models import Student, Registration
 from django.views.generic import ListView, DetailView
 from django.db import connection
@@ -9,14 +11,15 @@ def testmysql(request):
     return render(request, 'home.html')
 
 
-# StudentList class should be deleted later on.
-class StudentList(ListView):
+# StudentList class should be deleted later on. It dumps every student row, so
+# it is restricted to administrators until then.
+class StudentList(AdminRequiredMixin, ListView):
     template_name = 'student/student_list.html'
     model = Student
 
 
 # Student home page.
-class StudentHome(DetailView):
+class StudentHome(StudentSelfRequiredMixin, DetailView):
     template_name = 'student/student_home.html'
     model = Student
 
@@ -24,11 +27,12 @@ class StudentHome(DetailView):
 # Student main page after logging in.
 
 
-class StudentDetails(DetailView):
+class StudentDetails(StudentSelfRequiredMixin, DetailView):
     template_name = 'student/student_profile.html'
     model = Student
 
 
+@student_self_required(id_kwarg='student_id')
 def getStudentNotification(request, student_id):
     res = {
         'student_id': int(student_id),
@@ -46,6 +50,7 @@ def getStudentNotification(request, student_id):
     return render(request, 'student/student_notification.html', context)
 
 
+@student_self_required(id_kwarg='student_id')
 def dropCourse(request, student_id):
     cursor = connection.cursor()
     course_currently_taking = getCourseCurrentlyTakingOrPending(student_id)
@@ -87,6 +92,7 @@ def dropCourse(request, student_id):
     return render(request, 'student/drop_course.html', context)
 
 
+@student_self_required(id_kwarg='student_id')
 def getDegreeAudit(request, student_id):
     cursor = connection.cursor()
     res = {
@@ -142,6 +148,7 @@ def getDegreeAudit(request, student_id):
     return render(request, 'student/degree_audit.html', context)
 
 
+@student_self_required(id_kwarg='student_id')
 def getRegistrationInfo(request, student_id):
     cursor = connection.cursor()
     for c in getCourseNumList():

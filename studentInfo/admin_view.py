@@ -5,12 +5,15 @@ from django.shortcuts import (HttpResponse, HttpResponseRedirect,
 from django.templatetags.static import static
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
 from django.views.generic import UpdateView
 
+from .access_control import admin_required
 from .admin_form import *
 from .models import *
 
 
+@admin_required
 def admin_home(request):
     total_students = Student.objects.all().count()
     total_course = Course.objects.all().count()
@@ -28,6 +31,7 @@ def admin_home(request):
     return render(request, 'admin_template/home.html', context)
 
 
+@admin_required
 def add_advisor(request):
     form = AdvisorForm(request.POST or None, request.FILES or None)
     context = {'form': form, 'page_title': 'Add Advisor'}
@@ -53,6 +57,7 @@ def add_advisor(request):
     return render(request, 'admin_template/add_advisor_template.html', context)
 
 
+@admin_required
 def add_student(request):
     student_form = StudentForm(request.POST or None, request.FILES or None)
     context = {'form': student_form, 'page_title': 'Add Student'}
@@ -83,6 +88,7 @@ def add_student(request):
     return render(request, 'admin_template/add_student_template.html', context)
 
 
+@admin_required
 def add_course(request):
     form = CourseForm(request.POST or None)
     context = {
@@ -129,6 +135,7 @@ def add_course(request):
     return render(request, 'admin_template/add_course_template.html', context)
 
 
+@admin_required
 def manage_advisor(request):
     advisors = Advisor.objects.all()
     context = {
@@ -138,6 +145,7 @@ def manage_advisor(request):
     return render(request, "admin_template/manage_advisor_template.html", context)
 
 
+@admin_required
 def manage_student(request):
     students = Student.objects.all()
     context = {
@@ -147,6 +155,7 @@ def manage_student(request):
     return render(request, "admin_template/manage_student_template.html", context)
 
 
+@admin_required
 def manage_course(request):
     courses = Course.objects.all()
     context = {
@@ -156,6 +165,7 @@ def manage_course(request):
     return render(request, "admin_template/manage_course_template.html", context)
 
 
+@admin_required
 def edit_advisor(request, employee_id):
     advisor = get_object_or_404(Advisor, employee_id=employee_id)
     form = AdvisorForm(request.POST or None, instance=advisor)
@@ -193,6 +203,7 @@ def edit_advisor(request, employee_id):
         return render(request, "admin_template/edit_advisor_template.html", context)
 
 
+@admin_required
 def edit_student(request, nuid):
     student = get_object_or_404(Student, nuid=nuid)
     form = StudentForm(request.POST or None, instance=student)
@@ -242,6 +253,7 @@ def edit_student(request, nuid):
         return render(request, "admin_template/edit_student_template.html", context)
 
 
+@admin_required
 def edit_course(request, course_id):
     course = get_object_or_404(Course, course_id=course_id)
     form = CourseForm(request.POST or None, instance=course)
@@ -290,6 +302,8 @@ def edit_course(request, course_id):
     return render(request, 'admin_template/edit_course_template.html', context)
 
 
+@admin_required
+@require_POST
 def delete_advisor(request, employee_id):
     advisor = get_object_or_404(Advisor, employee_id=employee_id)
     try:
@@ -301,6 +315,8 @@ def delete_advisor(request, employee_id):
     return redirect(reverse('manage_advisor'))
 
 
+@admin_required
+@require_POST
 def delete_student(request, nuid):
     student = get_object_or_404(Student, nuid=nuid)
     student.delete()
@@ -308,6 +324,8 @@ def delete_student(request, nuid):
     return redirect(reverse('manage_student'))
 
 
+@admin_required
+@require_POST
 def delete_course(request, course_id):
     course = get_object_or_404(Course, course_id=course_id)
     try:

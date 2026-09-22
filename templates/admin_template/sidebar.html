@@ -97,6 +97,11 @@ integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG
                         </p>
                     </a>
                 </li>
+            <li>
+                    <form action="{% url 'logout' %}" method="post" class="nav-link p-0">{% csrf_token %}
+                        <button type="submit" class="btn btn-link nav-link">Sign Out</button>
+                    </form>
+                </li>
                 </ul>
 
                 </div>
