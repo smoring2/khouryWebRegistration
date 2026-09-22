@@ -156,6 +156,21 @@ def manage_course(request):
     return render(request, "admin_template/manage_course_template.html", context)
 
 
+def _apply_password(user, password):
+    """Set a password on a model instance that may not implement set_password.
+
+    Student/Advisor are plain ``models.Model`` classes, so calling
+    ``set_password`` raises ``AttributeError``. That exception was swallowed by
+    the surrounding handler, leaving the view without a response and producing
+    a debug traceback whose frame locals contained the submitted password.
+    """
+    setter = getattr(user, 'set_password', None)
+    if callable(setter):
+        setter(password)
+    else:
+        user.password = password
+
+
 def edit_advisor(request, employee_id):
     advisor = get_object_or_404(Advisor, employee_id=employee_id)
     form = AdvisorForm(request.POST or None, instance=advisor)
@@ -180,7 +195,7 @@ def edit_advisor(request, employee_id):
                 user.phone = phone
                 user.department = department
                 if password != None:
-                    user.set_password(password)
+                    _apply_password(user, password)
                 user.save()
                 advisor.save()
                 messages.success(request, "Successfully Updated")
@@ -189,8 +204,10 @@ def edit_advisor(request, employee_id):
                 messages.error(request, "Could Not Update " + str(e))
         else:
             messages.error(request, "Please fill form properly")
-    else:
-        return render(request, "admin_template/edit_advisor_template.html", context)
+
+    # Every branch must return a response; falling through returns None and
+    # Django then raises "The view didn't return an HttpResponse object".
+    return render(request, "admin_template/edit_advisor_template.html", context)
 
 
 def edit_student(request, nuid):
@@ -229,7 +246,7 @@ def edit_student(request, nuid):
                 user.grade = grade
                 user.semesterhour = semesterhour
                 if password != None:
-                    user.set_password(password)
+                    _apply_password(user, password)
                 user.save()
                 student.save()
                 messages.success(request, "Successfully Updated")
@@ -238,8 +255,10 @@ def edit_student(request, nuid):
                 messages.error(request, "Could Not Update " + str(e))
         else:
             messages.error(request, "Please Fill Form Properly!")
-    else:
-        return render(request, "admin_template/edit_student_template.html", context)
+
+    # Every branch must return a response; falling through returns None and
+    # Django then raises "The view didn't return an HttpResponse object".
+    return render(request, "admin_template/edit_student_template.html", context)
 
 
 def edit_course(request, course_id):

@@ -1,5 +1,10 @@
+from django.http import Http404
 from django.shortcuts import render
 from django.db import connection
+
+from .validators import (InvalidParameter, first_row, get_int,
+                         get_str, html_bad_request_guard, to_int)
+
 SQL_ADVISOR_INFO = '''SELECT * FROM advisor where employee_id = %(employee_id)s'''
 SQL_COURSE_INFO = '''SELECT * from course where course_id = %(course_id)s '''
 SQL_STUDENT_INFO = '''select * from student where nuid = %(nuid)s '''
@@ -8,84 +13,76 @@ SQL_DEPARTMENT_INFO = '''Select * from department where department_id = %(depart
 SQL_COLLEGE_INFO = '''Select * from college where collegeid = %(collegeid)s'''
 SQL_COURSE_DETAIL = '''select * from course where course_id = %(course_id)s '''
 
+ADVISOR_NOT_FOUND = 'No advisor matches the given id.'
+
 # cursor= connection.cursor()
 
-def getAdvisorInfoById(employee_id):
-    cursor= connection.cursor()
-    val = {'employee_id': int(employee_id)}
-    cursor.execute(SQL_ADVISOR_INFO, val)
+def _fetch_one_column_set(sql, params):
+    """Run a lookup query and always return a (possibly empty) result set."""
+    cursor = connection.cursor()
     try:
-        advisor_info = cursor.fetchall()
-    except Exception as e:
-        print("error")
-        print(e)
-    cursor.close()
-    return advisor_info
+        cursor.execute(sql, params)
+        return cursor.fetchall()
+    finally:
+        cursor.close()
+
+def getAdvisorInfoById(employee_id):
+    val = {'employee_id': to_int(employee_id, 'employee_id')}
+    return _fetch_one_column_set(SQL_ADVISOR_INFO, val)
 
 def getCourseInfoByCourseId(course_id):
-    cursor= connection.cursor()
-    val = {'course_id': int(course_id)}
-    cursor.execute(SQL_COURSE_INFO, val)
-    course_info = cursor.fetchall()
-    cursor.close()
-    return course_info
+    val = {'course_id': to_int(course_id, 'course_id')}
+    return _fetch_one_column_set(SQL_COURSE_INFO, val)
 
 
 def getStudentInfoByNuid(nuid):
-    cursor = connection.cursor()
-    val = {'nuid': int(nuid)}
-    cursor.execute(SQL_STUDENT_INFO, val)
-    student_info = cursor.fetchall()
-    cursor.close()
-    return student_info
+    val = {'nuid': to_int(nuid, 'nuid')}
+    return _fetch_one_column_set(SQL_STUDENT_INFO, val)
 
 def getDepartmentByDepartmentId(department_id):
-    cursor = connection.cursor()
-    val = {'department_id': int(department_id)}
-    cursor.execute(SQL_DEPARTMENT_INFO, val)
-    department_info = cursor.fetchall()
-    cursor.close()
-    return department_info
+    val = {'department_id': to_int(department_id, 'department_id')}
+    return _fetch_one_column_set(SQL_DEPARTMENT_INFO, val)
 
 def getCampusByCampusId(campusid):
-    cursor = connection.cursor()
-    val = {'campusid': int(campusid)}
-    cursor.execute(SQL_CAMPUS_INFO, val)
-    campus_info = cursor.fetchall()
-    cursor.close()
-    return campus_info
+    val = {'campusid': to_int(campusid, 'campusid')}
+    return _fetch_one_column_set(SQL_CAMPUS_INFO, val)
 
 def getCollegeByCollegeid(colleageid):
-    cursor = connection.cursor()
-    val = {'collegeid': int(colleageid)}
-    cursor.execute(SQL_COLLEGE_INFO, val)
-    college_info = cursor.fetchall()
-    cursor.close()
-    return college_info
+    val = {'collegeid': to_int(colleageid, 'collegeid')}
+    return _fetch_one_column_set(SQL_COLLEGE_INFO, val)
 
 SQL_INSTRUCTOR_INFO = '''select * from instructor where employee_id = %(instructor_id)s '''
 def getInstructorByInstructorId(instructor_id):
-    cursor = connection.cursor()
-    val = {'instructor_id': int(instructor_id)}
-    cursor.execute(SQL_INSTRUCTOR_INFO, val)
-    instructor_info = cursor.fetchall()
-    cursor.close()
-    return instructor_info
+    val = {'instructor_id': to_int(instructor_id, 'instructor_id')}
+    return _fetch_one_column_set(SQL_INSTRUCTOR_INFO, val)
 
+def getAdvisorRowOr404(advisor_id):
+    """Return the advisor row, or raise ``Http404`` when the id is unknown.
+
+    Indexing ``advisor_info[0]`` without this check raises ``IndexError`` for any
+    non-existent id, which Django renders as a debug traceback.
+    """
+    advisor_row = first_row(getAdvisorInfoById(advisor_id))
+    if advisor_row is None:
+        raise Http404(ADVISOR_NOT_FOUND)
+    return advisor_row
+
+@html_bad_request_guard
 def getAdvisorProfile(request, employee_id):
-    advisor_info = getAdvisorInfoById(employee_id)
-    res = {}
-    if advisor_info:
-        res['employee_id'] = employee_id
-        res['name'] = advisor_info[0][1]
-        res['email'] = advisor_info[0][2]
-        res['phone'] = advisor_info[0][3]
-    department_id = advisor_info[0][4]
-    department_info = getDepartmentByDepartmentId(department_id)
-    if department_id:
-        res['department_id'] = department_info[0][0]
-        res['department_name'] = department_info[0][1]
-        res['office_addr'] = department_info[0][2]
+    advisor_row = getAdvisorRowOr404(employee_id)
+    res = {
+        'employee_id': employee_id,
+        'name': advisor_row[1],
+        'email': advisor_row[2],
+        'phone': advisor_row[3],
+    }
+    department_id = advisor_row[4]
+    if department_id is not None:
+        department_row = first_row(getDepartmentByDepartmentId(department_id))
+        if department_row is not None:
+            res['department_id'] = department_row[0]
+            res['department_name'] = department_row[1]
+            res['office_addr'] = department_row[2]
     context = {
         "data": res
     }
@@ -99,34 +96,40 @@ SQL_ADVISOR_STU_UNDER_3 = '''select * from student where advisor = %(employee_id
 SQL_ADVISOR_STU_GAP_FULL = '''select * from student where advisor = %(employee_id)s and grade >= 4'''
 SQL_ADVISOR_STU_GPA_BETWEEN = '''select * from student  where advisor = %(employee_id)s and grade >= 3 AND grade < 4'''
 
+@html_bad_request_guard
 def getAdvisorStatistics(request, advisor_id):
     res = {}
-    advisor_info = getAdvisorInfoById(advisor_id)
-    print(advisor_info)
+    advisor_row = getAdvisorRowOr404(advisor_id)
     res['advisor_id'] = advisor_id
-    res['advisor_name'] = advisor_info[0][1]
+    res['advisor_name'] = advisor_row[1]
     cursor= connection.cursor()
-    val = {'employee_id': int(advisor_id)}
-    cursor.execute(SQL_ADVISOR_STU, val)
-    stu_info = cursor.fetchall()
-    cursor.execute(SQL_ADVISOR_STU_AVG_GPA, val)
-    stu_avg_gpa = cursor.fetchall()
-    cursor.execute(SQL_ADVISOR_STU_MAX_GPA, val)
-    stu_max_gpa = cursor.fetchall()
-    cursor.execute(SQL_ADVISOR_STU_MIN_GPA, val)
-    stu_min_gpa = cursor.fetchall()
-    cursor.execute(SQL_ADVISOR_STU_UNDER_3, val)
-    stu_gpa_under = cursor.fetchall()
-    cursor.execute(SQL_ADVISOR_STU_GAP_FULL, val)
-    stu_gpa_full = cursor.fetchall()
-    cursor.execute(SQL_ADVISOR_STU_GPA_BETWEEN, val)
-    stu_gpa_between = cursor.fetchall()
+    try:
+        val = {'employee_id': to_int(advisor_id, 'advisor_id')}
+        cursor.execute(SQL_ADVISOR_STU, val)
+        stu_info = cursor.fetchall()
+        cursor.execute(SQL_ADVISOR_STU_AVG_GPA, val)
+        stu_avg_gpa = cursor.fetchall()
+        cursor.execute(SQL_ADVISOR_STU_MAX_GPA, val)
+        stu_max_gpa = cursor.fetchall()
+        cursor.execute(SQL_ADVISOR_STU_MIN_GPA, val)
+        stu_min_gpa = cursor.fetchall()
+        cursor.execute(SQL_ADVISOR_STU_UNDER_3, val)
+        stu_gpa_under = cursor.fetchall()
+        cursor.execute(SQL_ADVISOR_STU_GAP_FULL, val)
+        stu_gpa_full = cursor.fetchall()
+        cursor.execute(SQL_ADVISOR_STU_GPA_BETWEEN, val)
+        stu_gpa_between = cursor.fetchall()
+    finally:
+        cursor.close()
 
     if stu_info:
         res['numOfStus'] = len(stu_info)
-        res['avg_gpa'] = stu_avg_gpa[0][0]
-        res['max_gpa'] = stu_max_gpa[0][0]
-        res['min_gpa'] = stu_min_gpa[0][0]
+        avg_row = first_row(stu_avg_gpa)
+        max_row = first_row(stu_max_gpa)
+        min_row = first_row(stu_min_gpa)
+        res['avg_gpa'] = avg_row[0] if avg_row else None
+        res['max_gpa'] = max_row[0] if max_row else None
+        res['min_gpa'] = min_row[0] if min_row else None
         res['numOfStusUnder'] = len(stu_gpa_under)
         res['numOfStusFull'] = len(stu_gpa_full)
         res['numOfStusBetween'] = len(stu_gpa_between)
@@ -134,18 +137,21 @@ def getAdvisorStatistics(request, advisor_id):
     context = {
         "stuInfos": res
     }
-    cursor.close()
     return render(request, 'advisor/advisor_index.html', context)
 
 SQL_REGISTRATIONS_STU_LIST = '''select nuid, course_id from registration where advisor_id = %(employee_id)s and status='pending' '''
+@html_bad_request_guard
 def getAdvisorRequests(request, advisor_id):
     results = {}
-    advisor_info = getAdvisorInfoById(advisor_id)
-    results['advisor_name'] = advisor_info[0][1]
+    advisor_row = getAdvisorRowOr404(advisor_id)
+    results['advisor_name'] = advisor_row[1]
     cursor= connection.cursor()
-    val = {'employee_id': int(advisor_id)}
-    cursor.execute(SQL_REGISTRATIONS_STU_LIST, val)
-    pendingList = cursor.fetchall()
+    try:
+        val = {'employee_id': to_int(advisor_id, 'advisor_id')}
+        cursor.execute(SQL_REGISTRATIONS_STU_LIST, val)
+        pendingList = cursor.fetchall()
+    finally:
+        cursor.close()
     res =[]
     if pendingList:
         res = getStusPendingRegistration(pendingList)
@@ -154,7 +160,6 @@ def getAdvisorRequests(request, advisor_id):
     context = {
         "data" : results
     }
-    cursor.close()
     return render(request, 'advisor/advisor_requests.html', context)
 
 def getStusPendingRegistration(pendingList):
@@ -162,14 +167,15 @@ def getStusPendingRegistration(pendingList):
     for pending in pendingList:
         nuid = pending[0]
         course_id = pending[1]
-        course_name = getCourseInfoByCourseId(course_id)[0][1]
+        course_row = first_row(getCourseInfoByCourseId(course_id))
+        course_name = course_row[1] if course_row else ''
         if nuid in dict:
             dict[nuid]["courses"].append({'course_id': course_id, 'course_name': course_name})
             continue
-        stu_info = getStudentInfoByNuid(nuid)
-        if stu_info:
-            stu_name = stu_info[0][1]
-            stu_grade = stu_info[0][10]
+        stu_row = first_row(getStudentInfoByNuid(nuid))
+        if stu_row is not None:
+            stu_name = stu_row[1]
+            stu_grade = stu_row[10]
             dict[nuid] = {
                 "nuid": nuid,
                 "name": stu_name,
@@ -181,11 +187,11 @@ def getStusPendingRegistration(pendingList):
         results.append(vals)
     return results
 
+@html_bad_request_guard
 def getAdvisorStudentSearch(request, advisor_id):
     res = {}
-    val = {'employee_id': int(advisor_id)}
-    advisor_info = getAdvisorInfoById(advisor_id)
-    res['advisor_name'] = advisor_info[0][1]
+    advisor_row = getAdvisorRowOr404(advisor_id)
+    res['advisor_name'] = advisor_row[1]
     res['advisor_id'] = advisor_id
     context = {
         "data": res
@@ -196,106 +202,119 @@ SQL_REGISTRATION_COMPLETED = '''select course_id, grade from registration where 
 SQL_REGISTRATION_PENDING = '''select course_id from registration where nuid = %(nuid)s and status = 'pending' '''
 SQL_REGISTRATION_FAILED = '''select course_id, grade from registration where nuid = %(nuid)s and status = 'failed' '''
 SQL_REGISTRATION_APPROVED = '''select course_id from registration where nuid = %(nuid)s and status = 'approved' '''
+@html_bad_request_guard
 def getStudentSearchDetails(request):
-    nuid = request.GET.get('nuid')
-    advisor_id = request.GET.get('advisor')
+    # The nuid comes from a free-text search box, so a non-numeric term is
+    # treated as "no match" rather than an error.
+    raw_nuid = get_str(request.GET, 'nuid')
+    advisor_id = get_int(request.GET, 'advisor')
     details = {
-        'nuid': nuid,
+        'nuid': raw_nuid,
         'advisor_id': advisor_id,
     }
-    advisor_info = getAdvisorInfoById(advisor_id)
-    student_info = getStudentInfoByNuid(nuid)
-    if len(student_info) == 0:
+    advisor_row = getAdvisorRowOr404(advisor_id)
+    try:
+        nuid = to_int(raw_nuid, 'nuid')
+        student_row = first_row(getStudentInfoByNuid(nuid))
+    except InvalidParameter:
+        student_row = None
+    if student_row is None:
         context = {
             'data': details
         }
         return render(request, 'advisor/advisor_search_details.html', context)
 
-    stu_advisor_id = student_info[0][8]
-    stu_advisor_info = getAdvisorInfoById(stu_advisor_id)
-    campus_info = getCampusByCampusId(student_info[0][4])
-    college_info = getCollegeByCollegeid(student_info[0][5])
-    department_info = getDepartmentByDepartmentId(student_info[0][6])
+    stu_advisor_id = student_row[8]
+    stu_advisor_row = first_row(getAdvisorInfoById(stu_advisor_id)) if stu_advisor_id is not None else None
+    campus_row = first_row(getCampusByCampusId(student_row[4])) if student_row[4] is not None else None
+    college_row = first_row(getCollegeByCollegeid(student_row[5])) if student_row[5] is not None else None
+    department_row = first_row(getDepartmentByDepartmentId(student_row[6])) if student_row[6] is not None else None
     details = {
         'nuid': nuid,
-        'student_name': student_info[0][1],
-        'student_email': student_info[0][2],
-        "student_grade": student_info[0][10],
-        'student_campus': campus_info[0][1],
-        'student_college': college_info[0][1],
-        'student_department': department_info[0][1],
-        'student_hours': student_info[0][11],
+        'student_name': student_row[1],
+        'student_email': student_row[2],
+        "student_grade": student_row[10],
+        'student_campus': campus_row[1] if campus_row else '',
+        'student_college': college_row[1] if college_row else '',
+        'student_department': department_row[1] if department_row else '',
+        'student_hours': student_row[11],
         'advisor_id': advisor_id,
-        'advisor_name': advisor_info[0][1],
+        'advisor_name': advisor_row[1],
         'stu_advisor_id': stu_advisor_id,
-        'stu_advisor_name': stu_advisor_info[0][1],
+        'stu_advisor_name': stu_advisor_row[1] if stu_advisor_row else '',
         'pending_courses': [],
         'approved_courses': [],
         'completed_courses': [],
         'failed_courses': []
     }
     cursor= connection.cursor()
-    val = {'nuid': int(nuid)}
-    cursor.execute(SQL_REGISTRATION_PENDING, val)
-    results = cursor.fetchall()
-    if results:
-        for r in results:
-            course_id = r[0]
-            course_info = getCourseInfoByCourseId(r[0])
-            details['pending_courses'].append({'course_id':course_id, 'course_name':course_info[0][1]})
+    try:
+        val = {'nuid': nuid}
+        cursor.execute(SQL_REGISTRATION_PENDING, val)
+        results = cursor.fetchall()
+        if results:
+            for r in results:
+                course_id = r[0]
+                course_row = first_row(getCourseInfoByCourseId(course_id))
+                details['pending_courses'].append({'course_id':course_id, 'course_name':course_row[1] if course_row else ''})
 
-    cursor.execute(SQL_REGISTRATION_APPROVED, val)
-    results = cursor.fetchall()
-    if results:
-        for r in results:
-             course_id = r[0]
-             course_info = getCourseInfoByCourseId(r[0])
-             details['approved_courses'].append({'course_id':course_id, 'course_name':course_info[0][1]})
+        cursor.execute(SQL_REGISTRATION_APPROVED, val)
+        results = cursor.fetchall()
+        if results:
+            for r in results:
+                course_id = r[0]
+                course_row = first_row(getCourseInfoByCourseId(course_id))
+                details['approved_courses'].append({'course_id':course_id, 'course_name':course_row[1] if course_row else ''})
 
-    cursor.execute(SQL_REGISTRATION_COMPLETED, val)
-    results = cursor.fetchall()
-    if results:
-        for r in results:
-            course_id = r[0]
-            course_info = getCourseInfoByCourseId(r[0])
-            details['completed_courses'].append({'course_id':course_id, 'course_name':course_info[0][1], 'course_gpa': r[1]})
+        cursor.execute(SQL_REGISTRATION_COMPLETED, val)
+        results = cursor.fetchall()
+        if results:
+            for r in results:
+                course_id = r[0]
+                course_row = first_row(getCourseInfoByCourseId(course_id))
+                details['completed_courses'].append({'course_id':course_id, 'course_name':course_row[1] if course_row else '', 'course_gpa': r[1]})
 
-    cursor.execute(SQL_REGISTRATION_FAILED, val)
-    results = cursor.fetchall()
-    if results:
-        for r in results:
-            course_id = r[0]
-            course_info = getCourseInfoByCourseId(r[0])
-            details['failed_courses'].append({'course_id':course_id, 'course_name':course_info[0][1], 'course_gpa': r[1]})
+        cursor.execute(SQL_REGISTRATION_FAILED, val)
+        results = cursor.fetchall()
+        if results:
+            for r in results:
+                course_id = r[0]
+                course_row = first_row(getCourseInfoByCourseId(course_id))
+                details['failed_courses'].append({'course_id':course_id, 'course_name':course_row[1] if course_row else '', 'course_gpa': r[1]})
+    finally:
+        cursor.close()
 
     context = {
         "data": details
     }
-    cursor.close()
     return render(request, 'advisor/advisor_search_details.html', context)
 
 SQL_ADVISOR_STUS_LIST = '''select * from student where advisor = %(advisor)s '''
+@html_bad_request_guard
 def getMyStudentsList(request, advisor_id):
+    advisor_row = getAdvisorRowOr404(advisor_id)
     cursor= connection.cursor()
-    var = {'advisor': int(advisor_id)}
-    cursor.execute(SQL_ADVISOR_STUS_LIST, var)
-    students = cursor.fetchall()
-    advisor_info = getAdvisorInfoById(advisor_id)
+    try:
+        var = {'advisor': to_int(advisor_id, 'advisor_id')}
+        cursor.execute(SQL_ADVISOR_STUS_LIST, var)
+        students = cursor.fetchall()
+    finally:
+        cursor.close()
     results = {
-        'advisor_id': int(advisor_id),
-        'advisor_name': advisor_info[0][1],
+        'advisor_id': to_int(advisor_id, 'advisor_id'),
+        'advisor_name': advisor_row[1],
         'students': students
     }
     context = {
         "data": results
     }
-    cursor.close()
     return render(request, 'advisor/advisor_students.html', context)
 
+@html_bad_request_guard
 def getAdvisorCourseSearch(request, advisor_id):
     res = {}
-    advisor_info = getAdvisorInfoById(advisor_id)
-    res['advisor_name'] = advisor_info[0][1]
+    advisor_row = getAdvisorRowOr404(advisor_id)
+    res['advisor_name'] = advisor_row[1]
     res['advisor_id'] = advisor_id
     context = {
         "data": res
@@ -303,50 +322,55 @@ def getAdvisorCourseSearch(request, advisor_id):
     return render(request, 'advisor/advisor_courses.html', context)
 
 SQL_COURSE_TAS = '''select * from ta where course_id = %(course_id)s '''
+@html_bad_request_guard
 def getCourseSearchDetails(request):
-     advisor_id = request.GET.get('advisor_id')
-     advisor_info = getAdvisorInfoById(advisor_id)
+     advisor_id = get_int(request.GET, 'advisor_id')
+     advisor_row = getAdvisorRowOr404(advisor_id)
      results = {
         'advisor_id': advisor_id,
-        'advisor_name': advisor_info[0][1],
+        'advisor_name': advisor_row[1],
      }
-     course_id = request.GET.get('course_id')
+     # The course id comes from a free-text search box; a non-numeric term is
+     # treated as "no match" rather than an error.  Only the numeric form is
+     # published as 'course_id' because the template interpolates it into
+     # JavaScript; the raw term is echoed back separately as plain text.
+     raw_course_id = get_str(request.GET, 'course_id')
+     results['course_query'] = raw_course_id
+     course_id = 0
+     try:
+        course_id = to_int(raw_course_id, 'course_id')
+        course_row = first_row(getCourseInfoByCourseId(course_id))
+     except InvalidParameter:
+        course_row = None
      results['course_id'] = course_id
-     course_info = getCourseInfoByCourseId(course_id)
-     if len(course_info) == 0:
+     if course_row is None:
         context = {
             'data': results
         }
         return render(request, 'advisor/advisor_course_details.html', context)
 
-     if course_info:
-        results['course_name'] = course_info[0][1]
-        results['instructor_id'] = course_info[0][2]
-        results['meeting_time'] = course_info[0][3]
-        results['max_num_of_students'] = course_info[0][4]
-        results['semester'] = course_info[0][5]
-        results['semester_hrs'] = course_info[0][6]
-        results['registered_num_of_stud'] = course_info[0][7]
-        results['department_id'] = course_info[0][8]
-        results['campusid'] = course_info[0][9]
-        results['building_id'] = course_info[0][10]
-        results['room_id'] = course_info[0][11]
-        instructor_id = course_info[0][2]
-        instructor_info = getInstructorByInstructorId(instructor_id)
-        results['instructor_name'] = instructor_info[0][3]
-     val = {'course_id': int(course_id)}
+     results['course_name'] = course_row[1]
+     results['instructor_id'] = course_row[2]
+     results['meeting_time'] = course_row[3]
+     results['max_num_of_students'] = course_row[4]
+     results['semester'] = course_row[5]
+     results['semester_hrs'] = course_row[6]
+     results['registered_num_of_stud'] = course_row[7]
+     results['department_id'] = course_row[8]
+     results['campusid'] = course_row[9]
+     results['building_id'] = course_row[10]
+     results['room_id'] = course_row[11]
+     instructor_id = course_row[2]
+     instructor_row = first_row(getInstructorByInstructorId(instructor_id)) if instructor_id is not None else None
+     results['instructor_name'] = instructor_row[3] if instructor_row else ''
      cursor = connection.cursor()
-     cursor.execute(SQL_COURSE_TAS, val)
-     tas = cursor.fetchall()
+     try:
+        cursor.execute(SQL_COURSE_TAS, {'course_id': course_id})
+        tas = cursor.fetchall()
+     finally:
+        cursor.close()
      results['tas'] = tas
-     cursor.close()
      context = {
         'data': results
      }
      return render(request, 'advisor/advisor_course_details.html', context)
-
-
-
-
-
-
