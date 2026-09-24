@@ -114,6 +114,19 @@ else:
 # [END db_setup]
 
 
+# Django REST Framework configuration
+# Require authentication by default for all DRF views to prevent
+# unauthenticated access (overrides the built-in AllowAny default).
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.SessionAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+}
+
+
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
 
