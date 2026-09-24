@@ -157,6 +157,44 @@ delimiter ;
 #     (6, 'Bell', 'jone@northeastern.edu', '2200-02-21', 2, 12, 2, 100000001, 101, '/imgs/husky.png', 4.5, 16);
 # select * from student;
 
+-- trigger 1b student_violation_update
+-- Clamp grade into [0, 4] on UPDATE as well (the original trigger only covers INSERT).
+-- This is defense-in-depth for the updateGPA code path which issues UPDATE statements.
+delimiter  //
+# drop trigger student_violation_update $$
+create trigger student_violation_update
+    before update
+    on student
+    for each row
+begin
+    if new.grade > 4 then
+        set new.grade = 4;
+    end if;
+    if new.grade < 0 then
+        set new.grade = 0;
+    end if;
+end //
+delimiter ;
+
+-- trigger 1c registration_grade_check
+-- Clamp registration.grade into [0, 4] on INSERT and UPDATE to prevent
+-- out-of-range values from being stored even if application validation is bypassed.
+delimiter  //
+# drop trigger registration_grade_check_insert $$
+create trigger registration_grade_check_insert
+    before insert
+    on registration
+    for each row
+begin
+    if new.grade is not null and new.grade > 4 then
+        set new.grade = 4;
+    end if;
+    if new.grade is not null and new.grade < 0 then
+        set new.grade = 0;
+    end if;
+end //
+delimiter ;
+
 -- trigger 2 cal_average_gpa_department_trigger
 -- calculate the average_gpa for campus and department when a change in student table
 delimiter  //
@@ -208,13 +246,20 @@ delimiter ;
 # select * from department where department_id = 1;
 
 
-
+-- gpa_status trigger: also clamp registration.grade to [0, 4] on UPDATE
+-- before applying status logic, as defense-in-depth against out-of-range values.
 delimiter  //
 create trigger gpa_status
     before update
     on registration
     for each row
 begin
+    if new.grade is not null and new.grade > 4 then
+        set new.grade = 4;
+    end if;
+    if new.grade is not null and new.grade < 0 then
+        set new.grade = 0;
+    end if;
     if new.grade is not null and new.grade >= 3.0 then
         set new.status = 'completed';
     end if;

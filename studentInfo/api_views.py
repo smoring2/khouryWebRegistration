@@ -2,18 +2,25 @@ from django.shortcuts import render
 from django.http.response import JsonResponse
 from rest_framework.parsers import JSONParser
 from rest_framework import status
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from rest_framework.authentication import SessionAuthentication
+from rest_framework.permissions import IsAuthenticated
 
 from django.db import connection
 NO_PERMISSION_ALERT = "No records.\n Or No permission. This is not your student!"
 SUCCEED_ALERT = "Succeed"
 ERROR_ALERT = "Something wrong! Please try again!"
+INVALID_GPA_ALERT = "Invalid grade. Grade must be a number between 0.0 and 4.0."
+GPA_MIN = 0.0
+GPA_MAX = 4.0
 SQL_COURSE_ADD_NUM = '''update course set registered_num_of_stud = registered_num_of_stud + 1 where course_id = %(course_id)s '''
 SQL_COURSE_INFO = '''select * from course where course_id = %(course_id)s '''
 SQL_REGISTRATION_APPROVAL = '''update registration set status = 'approved'
 where nuid = %(nuid)s and status = 'pending' and advisor_id = %(advisor_id)s '''
 SQL_REGISTRATION_PENDING_LIST = '''select * from registration where nuid = %(nuid)s and status = 'pending' and advisor_id = %(advisor_id)s'''
 @api_view(['GET'])
+@authentication_classes([SessionAuthentication])
+@permission_classes([IsAuthenticated])
 def approvePendingRequest(request):
     nuid = request.query_params.get('nuid')
     advisor_id = request.query_params.get('advisor_id')
@@ -40,6 +47,8 @@ SQL_REGISTRATION_REJECTION = '''update registration set status = 'rejected'
 where nuid= %(nuid)s and advisor_id = %(advisor_id)s and ( status = 'pending' or status ='approved') '''
 SQL_PENDING_REJECTION = '''delete from registration where nuid= %(nuid)s and advisor_id = %(advisor_id)s and status = 'pending' '''
 @api_view(['GET'])
+@authentication_classes([SessionAuthentication])
+@permission_classes([IsAuthenticated])
 def rejectPendingRequest(request):
     nuid = request.query_params.get('nuid')
     advisor_id = request.query_params.get('advisor_id')
@@ -63,6 +72,8 @@ where nuid= %(nuid)s and course_id = %(course_id)s and advisor_id = %(advisor_id
 SQL_APPROVED_REJECTION = '''delete from registration where nuid= %(nuid)s and advisor_id = %(advisor_id)s and course_id = %(course_id)s and status = 'approved' '''
 SQL_REGISTERED_NUM_MINUS = '''update course set registered_num_of_stud = registered_num_of_stud - 1 where course_id = %(course_id)s '''
 @api_view(['GET'])
+@authentication_classes([SessionAuthentication])
+@permission_classes([IsAuthenticated])
 def removeOneApprovedCourse(request):
     nuid = request.query_params.get('nuid')
     course_id = request.query_params.get('course_id')
@@ -90,6 +101,8 @@ where nuid= %(nuid)s and course_id = %(course_id)s and advisor_id = %(advisor_id
 SQL_REGISTRATION_INSERT = '''insert into registration values
 (%(nuid)s, %(course_id)s, %(advisor_id)s, null, 'approved')'''
 @api_view(['GET'])
+@authentication_classes([SessionAuthentication])
+@permission_classes([IsAuthenticated])
 def addOneApprovedCourse(request):
     nuid = request.query_params.get('nuid')
     course_id = request.query_params.get('course_id')
@@ -146,13 +159,21 @@ SQL_STUDENT_GPA_UPDATE = '''update student set grade = %(grade)s where nuid = %(
 SQL_STUDENT_GPA_CAL = '''SELECT avg(grade) from registration where grade is not null
 group by nuid having nuid = %(nuid)s'''
 @api_view(['GET'])
+@authentication_classes([SessionAuthentication])
+@permission_classes([IsAuthenticated])
 def updateGPA(request):
     nuid = request.query_params.get('nuid')
     course_id = request.query_params.get('course_id')
     advisor_id = request.query_params.get('advisor_id')
     grade = request.query_params.get('grade')
+    try:
+        grade_val = float(grade)
+    except (TypeError, ValueError):
+        return JsonResponse({'message': INVALID_GPA_ALERT}, status=400, safe=False)
+    if grade_val < GPA_MIN or grade_val > GPA_MAX:
+        return JsonResponse({'message': INVALID_GPA_ALERT}, status=400, safe=False)
     cursor= connection.cursor()
-    val = {'nuid': int(nuid), 'course_id': int(course_id), 'advisor_id': int(advisor_id), 'grade': float(grade)}
+    val = {'nuid': int(nuid), 'course_id': int(course_id), 'advisor_id': int(advisor_id), 'grade': grade_val}
     message = "succeed"
     try:
         cursor.execute(SQL_REGISTRATION_UPDATE_GPA, val)
@@ -164,7 +185,10 @@ def updateGPA(request):
             cursor.execute(SQL_STUDENT_GPA_CAL, val)
             gpas = cursor.fetchall()
             curr_gpa = gpas[0][0]
-            val = {'grade': float(curr_gpa), 'nuid' : int(nuid)}
+            avg_gpa = float(curr_gpa)
+            # Clamp the computed average GPA to [0.0, 4.0] as a safety net
+            avg_gpa = max(GPA_MIN, min(GPA_MAX, avg_gpa))
+            val = {'grade': avg_gpa, 'nuid' : int(nuid)}
             cursor.execute(SQL_STUDENT_GPA_UPDATE, val)
     except Exception as e:
         print(e)
@@ -176,6 +200,8 @@ def updateGPA(request):
 SQL_STUDENT_INSERT = ''' insert into student (nuid, name, email, bdate, campusid, collegeid, department_id, phone, advisor, semesterhour, password) values (%(nuid)s, %(name)s, %(email)s,  %(bdate)s, %(campus)s, %(college)s, %(department)s, %(phone)s, %(advisor)s, 8, %(password)s) '''
 SQL_NUID_CHECK = '''select * from student where nuid = %(nuid)s '''
 @api_view(['GET'])
+@authentication_classes([SessionAuthentication])
+@permission_classes([IsAuthenticated])
 def insertStudent(request):
     print(request.query_params)
     nuid = request.query_params.get('nuid')
@@ -224,6 +250,8 @@ def insertStudent(request):
 
 SQL_STUDENT_UPDATE_HOURS = '''update student set semesterhour= %(hours)s where nuid = %(nuid)s '''
 @api_view(['GET'])
+@authentication_classes([SessionAuthentication])
+@permission_classes([IsAuthenticated])
 def updateHours(request):
     nuid = request.query_params.get('nuid')
     hours = request.query_params.get('hours')
@@ -242,6 +270,8 @@ def updateHours(request):
 
 SQL_ADVISOR_UPDATE_PHONE = '''update advisor set phone = %(phone)s where employee_id = %(advisor_id)s '''
 @api_view(['GET'])
+@authentication_classes([SessionAuthentication])
+@permission_classes([IsAuthenticated])
 def updatePhone(request):
     advisor_id = request.query_params.get("advisor_id")
     phone = request.query_params.get('phone')
@@ -259,6 +289,8 @@ def updatePhone(request):
 SQL_COURSE_ROOM = '''update course set campusid = %(campusid)s,
 building_id = %(building_id)s, room_id = %(room_id)s where course_id = %(course_id)s '''
 @api_view(['GET'])
+@authentication_classes([SessionAuthentication])
+@permission_classes([IsAuthenticated])
 def saveClassRoom(request):
     course_id = request.query_params.get('course_id')
     campusid = request.query_params.get('campusid')
@@ -279,6 +311,8 @@ def saveClassRoom(request):
 
 SQL_BUILDING_LIST = '''select * from building where campusid = %(campusid)s '''
 @api_view(['GET'])
+@authentication_classes([SessionAuthentication])
+@permission_classes([IsAuthenticated])
 def getBuildingList(request):
     campusid = request.query_params.get('campusid')
     val = {'campusid': int(campusid)}
@@ -297,6 +331,8 @@ def getBuildingList(request):
 
 SQL_ROOM_LIST = '''select * from room where campusid = %(campusid)s and building_id = %(building_id)s '''
 @api_view(['GET'])
+@authentication_classes([SessionAuthentication])
+@permission_classes([IsAuthenticated])
 def getRoomList(request):
     campusid = request.query_params.get('campusid')
     building_id = request.query_params.get('building_id')
@@ -318,6 +354,8 @@ SQL_STUDENT_INFO = '''select * from student where nuid = %(nuid)s '''
 SQL_TA_INSERT = '''insert into ta values (%(nuid)s, %(name)s, %(email)s, %(campusid)s, %(collegeid)s,
 %(department_id)s, %(phone)s, %(advisor)s, %(photo)s, %(grade)s, %(semester_hour)s, %(course_id)s) '''
 @api_view(['GET'])
+@authentication_classes([SessionAuthentication])
+@permission_classes([IsAuthenticated])
 def addTaForCourse(request):
     nuid = request.query_params.get('ta_nuid')
     course_id = request.query_params.get('course_id')
@@ -355,6 +393,8 @@ def addTaForCourse(request):
 
 SQL_TA_REMOVE = ''' delete from ta where nuid = %(nuid)s and course_id = %(course_id)s '''
 @api_view(['GET'])
+@authentication_classes([SessionAuthentication])
+@permission_classes([IsAuthenticated])
 def removeTaForCourse(request):
     nuid = request.query_params.get('ta_nuid')
     course_id = request.query_params.get('course_id')
@@ -373,4 +413,3 @@ def removeTaForCourse(request):
         print(e)
         message = failed
     return JsonResponse({'message': message}, safe=False)
-
